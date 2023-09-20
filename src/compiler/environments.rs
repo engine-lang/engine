@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::tokens::TokenType;
+use crate::compiler::tokens::TokenType;
 
 
 #[derive(Debug, Clone, PartialEq)]

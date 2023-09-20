@@ -1,12 +1,16 @@
-use std::collections::{HashMap, VecDeque};
+use std::collections::{
+    HashMap,
+    VecDeque
+};
 use std::process::Command;
 
-use crate::environments::{
+use crate::compiler::environments::{
     Environment,
-    EnvironmentScope, Variable
+    EnvironmentScope,
+    Variable
 };
-use crate::file::File;
-use crate::syntax_tree::{
+use crate::compiler::file::File;
+use crate::compiler::syntax_tree::{
     StatementsNode,
     StatementNode,
     StatementType,
@@ -22,7 +26,7 @@ use crate::syntax_tree::{
     DefineVariableNode,
     DefineIfStatementNode
 };
-use crate::tokens::TokenType;
+use crate::compiler::tokens::TokenType;
 
 
 #[derive(Debug)]

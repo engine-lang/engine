@@ -1,6 +1,9 @@
 use std::collections::VecDeque;
 
-use crate::tokens::{Token, TokenType};
+use crate::compiler::tokens::{
+    Token,
+    TokenType
+};
 
 
 #[derive(Debug, Clone, PartialEq)]

@@ -1,13 +1,14 @@
 use std::collections::VecDeque;
 use std::vec;
 use std::vec::Vec;
-use crate::lexer::Lexer;
-use crate::syntax_tree::DefineElseNode;
-use crate::syntax_tree::DefineIfElseNode;
-use crate::syntax_tree::DefineIfNode;
-use crate::tokens::Token;
-use crate::tokens::TokenType;
-use crate::syntax_tree::{
+
+use crate::compiler::lexer::Lexer;
+use crate::compiler::syntax_tree::DefineElseNode;
+use crate::compiler::syntax_tree::DefineIfElseNode;
+use crate::compiler::syntax_tree::DefineIfNode;
+use crate::compiler::tokens::Token;
+use crate::compiler::tokens::TokenType;
+use crate::compiler::syntax_tree::{
     StatementsNode,
     construct_expression_node,
     DefineBoolNode,

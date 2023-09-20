@@ -1,7 +1,7 @@
 use std::io::SeekFrom;
 use std::io::Seek;
 
-use crate::character::Character;
+use crate::compiler::character::Character;
 
 
 #[derive(Debug)]

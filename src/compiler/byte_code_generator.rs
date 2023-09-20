@@ -1,7 +1,7 @@
 use std::collections::{HashMap, VecDeque};
 
-use crate::file::File;
-use crate::syntax_tree::{
+use crate::compiler::file::File;
+use crate::compiler::syntax_tree::{
     StatementsNode,
     StatementNode,
     StatementType,
@@ -11,13 +11,21 @@ use crate::syntax_tree::{
     DefineDoubleNode,
     DefineCharNode,
     DefineStringNode,
-    OperatorType, DefinePrintNode, DefineVarNode, DefineVariableNode, DefineIfStatementNode
+    OperatorType,
+    DefinePrintNode,
+    DefineVarNode,
+    DefineVariableNode,
+    DefineIfStatementNode
 };
-use crate::tokens::TokenType;
-use crate::constants::{VERSION, SPACE_STRING_LENGTH};
-use crate::environments::{
+use crate::compiler::tokens::TokenType;
+use crate::constants::compiler::{
+    VERSION,
+    SPACE_STRING_LENGTH
+};
+use crate::compiler::environments::{
     Environment,
-    EnvironmentScope, Variable
+    EnvironmentScope,
+    Variable
 };
 
 

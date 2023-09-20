@@ -1,12 +1,15 @@
-use std::collections::{HashMap, VecDeque};
+use std::collections::{
+    HashMap,
+    VecDeque
+};
 
-use crate::tokens::TokenType;
-use crate::environments::{
+use crate::compiler::tokens::TokenType;
+use crate::compiler::environments::{
     Environment,
     EnvironmentScope,
     Variable
 };
-use crate::syntax_tree::{
+use crate::compiler::syntax_tree::{
     StatementsNode,
     StatementType,
     DefineBoolNode,

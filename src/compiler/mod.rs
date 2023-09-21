@@ -21,7 +21,7 @@ use code_generator::CodeGenerator;
 use byte_code_generator::ByteCodeGenerator;
 
 
-pub fn compile() -> Result<(), String>{
+pub fn compile(generate_byte_code: bool) -> Result<(), String>{
     panic::set_hook(Box::new(|panic_info| {
         if let Some(panic_message) = panic_info.payload().downcast_ref::<String>() {
             println!("{}", panic_message);
@@ -35,11 +35,6 @@ pub fn compile() -> Result<(), String>{
     let args: Vec<String> = env::args().collect();
     if args.len() < 2{
         panic!("Engine Compiler -> Compiler Error: Must provide file path.");
-    }
-
-    let mut generate_byte_code = false;
-    if args.len() > 2 && args[2] == "--byte-code"{
-        generate_byte_code = true;
     }
 
     let file_path = args[1].clone();

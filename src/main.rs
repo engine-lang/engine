@@ -42,14 +42,10 @@ fn parse_args() -> ArgMatches{
 fn main() {
     let matches = parse_args();
 
-    let generate_byte_code = {
-        if matches.contains_id("byte-code") && matches.get_one::<bool>("byte-code").unwrap().clone(){
-            true
-        }
-        else{
-            false
-        }
-    };
+    let generate_byte_code = if
+        matches.contains_id("byte-code") &&
+        matches.get_one::<bool>("byte-code").unwrap().clone()
+    {true} else {false};
 
     let result = compile(generate_byte_code);
     if result.is_err(){

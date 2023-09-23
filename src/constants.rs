@@ -1,5 +1,7 @@
+pub const VERSION: &'static str = "v0.1.0";
+pub const VARIABLE_MAX_LENGTH: i8 = 100;
+
+
 pub mod compiler{
-    pub const VERSION: &'static str = "v0.1.0";
-    pub const VARIABLE_MAX_LENGTH: i8 = 100;
-    pub const SPACE_STRING_LENGTH: i8 = 80;
+    pub const BYTECODE_SPACE_STRING_LENGTH: i8 = 80;
 }

@@ -1,16 +1,16 @@
-use crate::compiler::character::Character;
-use crate::compiler::tokens::{
+use crate::interpreter::character::Character;
+use crate::interpreter::tokens::{
     Token,
     TokenType
 };
-use crate::compiler::file::File;
-use crate::compiler::tokens::get_token_type;
+use crate::interpreter::file::File;
+use crate::interpreter::tokens::get_token_type;
 use crate::constants::VARIABLE_MAX_LENGTH;
 
 
 #[derive(Debug)]
 pub struct Lexer{
-    file: File,
+    file: Option<File>,
     pub current_line: u64,
     pub current_pos: u64,
     pub current_character: Character
@@ -21,7 +21,7 @@ impl Lexer{
         let mut file = file;
         return Ok(Lexer{
             current_character: file.read(),
-            file,
+            file: Some(file),
             current_line: 1,
             current_pos: 1
         })
@@ -34,13 +34,13 @@ impl Lexer{
     }
 
     fn peek(&mut self, index: u64) -> Character{
-        return self.file.peek(index - 1);
+        return self.file.as_mut().unwrap().peek(index - 1);
     }
 
     fn next(&mut self) -> String{
         self.current_pos += 1;
         let old_character = self.current_character.clone();
-        self.current_character = self.file.read();
+        self.current_character = self.file.as_mut().unwrap().read();
         return old_character.to_string().clone();
     }
 
@@ -90,7 +90,7 @@ impl Lexer{
 
             if variable_length > VARIABLE_MAX_LENGTH{
                 return Err(format!(
-                    "Engine Compiler: Token Error -> {}, line {}:{}.",
+                    "Engine Interpreter: Token Error -> {}, line {}:{}.",
                     format!(
                         "Variable length must not exceed {} characters",
                         VARIABLE_MAX_LENGTH),
@@ -164,7 +164,7 @@ impl Lexer{
         }
 
         return Err(format!(
-            "Engine Compiler: Syntax Error -> {}, line {}:{}.",
+            "Engine Interpreter: Syntax Error -> {}, line {}:{}.",
             "End of file reached", line, position));
     }
 
@@ -209,7 +209,7 @@ impl Lexer{
         }
 
         return Err(format!(
-            "Engine Compiler: Syntax Error -> {}, line {}:{}.",
+            "Engine Interpreter: Syntax Error -> {}, line {}:{}.",
             "Unexcepeted end of file",
             line, position));
     }
@@ -292,6 +292,7 @@ impl Lexer{
                 value: self.next()
             })
         }
+
         else if self.current().to_string() == ")"{
             return Ok(Token{
                 token_type: TokenType::CloseParenthes,
@@ -482,7 +483,7 @@ impl Lexer{
 
         else if !self.current().is_ascii(){
             return Err(format!(
-                "Engine Compiler: Syntax Error -> {}, line {}:{}.",
+                "Engine Interpreter: Syntax Error -> {}, line {}:{}.",
                 "Only support ascii characters",
                 self.current_line, self.current_pos));
         }

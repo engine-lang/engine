@@ -1,4 +1,3 @@
-mod constants;
 mod character;
 mod file;
 mod lexer;

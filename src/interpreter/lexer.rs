@@ -5,7 +5,7 @@ use crate::interpreter::tokens::{
 };
 use crate::interpreter::file::File;
 use crate::interpreter::tokens::get_token_type;
-use crate::interpreter::constants::VARIABLE_MAX_LENGTH;
+use crate::constants::VARIABLE_MAX_LENGTH;
 
 
 #[derive(Debug)]

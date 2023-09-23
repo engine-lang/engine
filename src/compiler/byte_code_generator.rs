@@ -18,10 +18,8 @@ use crate::compiler::syntax_tree::{
     DefineIfStatementNode
 };
 use crate::compiler::tokens::TokenType;
-use crate::constants::compiler::{
-    VERSION,
-    SPACE_STRING_LENGTH
-};
+use crate::constants::VERSION;
+use crate::constants::compiler::BYTECODE_SPACE_STRING_LENGTH;
 use crate::compiler::environments::{
     Environment,
     EnvironmentScope,
@@ -141,7 +139,7 @@ impl ByteCodeGenerator{
     fn append_empty_lines(&mut self, string: String) -> String{
         let mut string = string;
 
-        while string.len() < SPACE_STRING_LENGTH as usize{
+        while string.len() < BYTECODE_SPACE_STRING_LENGTH as usize{
             string.push(' ');
         }
         return string;

@@ -31,26 +31,19 @@ pub fn interpret() -> Result<(), String>{
         }
     }));
 
-    interpreter_mode(&args[1])?;
-
-    return Ok(());
-}
-
-
-fn interpreter_mode(file_path: &String) -> Result<(), String>{
-    let file = File::new(&file_path);
+    let file = File::new(&args[1]);
     let lexer = Lexer::new(file);
     if lexer.is_err(){
         panic!(
             "Engine Interpreter -> File Error: Failed in reading file character `{}`.",
-            &file_path);
+            &args[1]);
     }
 
     let mut parser = Parser::new(lexer.unwrap());
     if parser.is_err(){
         panic!(
             "Engine Interpreter -> Parser Error: Failed in reading file character `{}`.",
-            &file_path);
+            &args[1]);
     }
 
     let mut analyzer = Analyzer::new();

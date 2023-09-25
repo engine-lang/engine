@@ -1,4 +1,7 @@
 mod constants;
+mod tokens;
+mod environments;
+
 mod compiler;
 mod interpreter;
 mod vm;

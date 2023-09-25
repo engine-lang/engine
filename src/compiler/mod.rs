@@ -1,10 +1,8 @@
 mod character;
-mod tokens;
 mod file;
 mod lexer;
 mod parser;
 mod syntax_tree;
-mod environments;
 mod symantic_analyzer;
 mod code_generator;
 mod byte_code_generator;

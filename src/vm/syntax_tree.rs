@@ -1,4 +1,4 @@
-use crate::vm::tokens::TokenType;
+use crate::tokens::TokenType;
 
 
 #[derive(Debug, Clone, PartialEq)]

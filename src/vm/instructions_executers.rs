@@ -1,21 +1,20 @@
 use std::io::Write;
 
-use crate::vm::{
-    syntax_tree::{
-        Instruction,
-        InstructionType,
-        PrintInstruction,
-        InputInstruction,
-        IfInstruction,
-        GoToInstruction
-    },
-    tokens::TokenType,
-    environments::{
-        Environment,
-        Variable,
-        Value,
-        ValueType
-    }
+use crate::tokens::TokenType;
+use crate::environments::{
+    Environment,
+    Variable,
+    Value,
+    ValueType
+};
+
+use crate::vm::syntax_tree::{
+    Instruction,
+    InstructionType,
+    PrintInstruction,
+    InputInstruction,
+    IfInstruction,
+    GoToInstruction
 };
 use crate::vm::assign_instructions::execute_assign_instruction;
 use crate::vm::convert_instructions::execute_convert_instruction;
@@ -147,6 +146,7 @@ fn execute_input_instruction(
     }
 
     let variable = Variable{
+        is_reasigned: false,
         variable_type: Some(TokenType::String),
         name: Some(instruction.variable_name.as_ref().unwrap().clone()),
         value: Some(Value{

@@ -1,13 +1,12 @@
-use crate::vm::{
-    syntax_tree::OperationInstruction,
-    tokens::TokenType,
-    environments::{
-        Environment,
-        Variable,
-        Value,
-        ValueType
-    }
+use crate::tokens::TokenType;
+use crate::environments::{
+    Environment,
+    Variable,
+    Value,
+    ValueType
 };
+
+use crate::vm::syntax_tree::OperationInstruction;
 
 
 pub fn execute_operation_instruction(
@@ -139,6 +138,7 @@ fn execute_plus_operation(
         let right_value = right_variable.value.as_ref().unwrap().string.as_ref().unwrap().clone();
 
         let variable = Variable{
+            is_reasigned: false,
             variable_type: Some(TokenType::String),
             name: Some(instruction.assign_to_variable.as_ref().unwrap().clone()),
             value: Some(Value{
@@ -148,7 +148,7 @@ fn execute_plus_operation(
                 double: None,
                 int: None,
                 string: Some(left_value + &right_value),
-                string_value: None
+                string_value: None,
             })
         };
 
@@ -173,6 +173,7 @@ fn execute_plus_operation(
         let right_value = right_variable.value.as_ref().unwrap().int.as_ref().unwrap().clone();
 
         let variable = Variable{
+            is_reasigned: false,
             variable_type: Some(TokenType::Int),
             name: Some(instruction.assign_to_variable.as_ref().unwrap().clone()),
             value: Some(Value{
@@ -207,6 +208,7 @@ fn execute_plus_operation(
         let right_value = right_variable.value.as_ref().unwrap().double.as_ref().unwrap().clone();
 
         let variable = Variable{
+            is_reasigned: false,
             variable_type: Some(TokenType::Double),
             name: Some(instruction.assign_to_variable.as_ref().unwrap().clone()),
             value: Some(Value{
@@ -303,6 +305,7 @@ fn execute_minus_operation(
         let right_value = right_variable.value.as_ref().unwrap().int.as_ref().unwrap().clone();
 
         let variable = Variable{
+            is_reasigned: false,
             variable_type: Some(TokenType::Int),
             name: Some(instruction.assign_to_variable.as_ref().unwrap().clone()),
             value: Some(Value{
@@ -337,6 +340,7 @@ fn execute_minus_operation(
         let right_value = right_variable.value.as_ref().unwrap().double.as_ref().unwrap().clone();
 
         let variable = Variable{
+            is_reasigned: false,
             variable_type: Some(TokenType::Double),
             name: Some(instruction.assign_to_variable.as_ref().unwrap().clone()),
             value: Some(Value{
@@ -433,6 +437,7 @@ fn execute_mul_operation(
         let right_value = right_variable.value.as_ref().unwrap().int.as_ref().unwrap().clone();
 
         let variable = Variable{
+            is_reasigned: false,
             variable_type: Some(TokenType::Int),
             name: Some(instruction.assign_to_variable.as_ref().unwrap().clone()),
             value: Some(Value{
@@ -467,6 +472,7 @@ fn execute_mul_operation(
         let right_value = right_variable.value.as_ref().unwrap().double.as_ref().unwrap().clone();
 
         let variable = Variable{
+            is_reasigned: false,
             variable_type: Some(TokenType::Double),
             name: Some(instruction.assign_to_variable.as_ref().unwrap().clone()),
             value: Some(Value{
@@ -560,6 +566,7 @@ fn execute_div_operation(
     let right_value = right_variable.value.as_ref().unwrap().double.as_ref().unwrap().clone();
 
     let variable = Variable{
+        is_reasigned: false,
         variable_type: Some(TokenType::Double),
         name: Some(instruction.assign_to_variable.as_ref().unwrap().clone()),
         value: Some(Value{
@@ -655,6 +662,7 @@ fn execute_mod_operation(
         let right_value = right_variable.value.as_ref().unwrap().int.as_ref().unwrap().clone();
 
         let variable = Variable{
+            is_reasigned: false,
             variable_type: Some(TokenType::Int),
             name: Some(instruction.assign_to_variable.as_ref().unwrap().clone()),
             value: Some(Value{
@@ -689,6 +697,7 @@ fn execute_mod_operation(
         let right_value = right_variable.value.as_ref().unwrap().double.as_ref().unwrap().clone();
 
         let variable = Variable{
+            is_reasigned: false,
             variable_type: Some(TokenType::Int),
             name: Some(instruction.assign_to_variable.as_ref().unwrap().clone()),
             value: Some(Value{
@@ -783,6 +792,7 @@ fn execute_and_operation(
     let right_value = right_variable.value.as_ref().unwrap().boolean.as_ref().unwrap().clone();
 
     let variable = Variable{
+        is_reasigned: false,
         variable_type: Some(TokenType::Bool),
         name: Some(instruction.assign_to_variable.as_ref().unwrap().clone()),
         value: Some(Value{
@@ -876,6 +886,7 @@ fn execute_or_operation(
     let right_value = right_variable.value.as_ref().unwrap().boolean.as_ref().unwrap().clone();
 
     let variable = Variable{
+        is_reasigned: false,
         variable_type: Some(TokenType::Bool),
         name: Some(instruction.assign_to_variable.as_ref().unwrap().clone()),
         value: Some(Value{
@@ -976,6 +987,7 @@ fn execute_greater_than_operation(
         } else {right_variable.value.as_ref().unwrap().double.as_ref().unwrap().clone()};
 
     let variable = Variable{
+        is_reasigned: false,
         variable_type: Some(TokenType::Bool),
         name: Some(instruction.assign_to_variable.as_ref().unwrap().clone()),
         value: Some(Value{
@@ -1076,6 +1088,7 @@ fn execute_greater_than_or_equal_operation(
         } else {right_variable.value.as_ref().unwrap().double.as_ref().unwrap().clone()};
 
     let variable = Variable{
+        is_reasigned: false,
         variable_type: Some(TokenType::Bool),
         name: Some(instruction.assign_to_variable.as_ref().unwrap().clone()),
         value: Some(Value{
@@ -1176,6 +1189,7 @@ fn execute_less_than_operation(
         } else {right_variable.value.as_ref().unwrap().double.as_ref().unwrap().clone()};
 
     let variable = Variable{
+        is_reasigned: false,
         variable_type: Some(TokenType::Bool),
         name: Some(instruction.assign_to_variable.as_ref().unwrap().clone()),
         value: Some(Value{
@@ -1276,6 +1290,7 @@ fn execute_less_than_or_equal_operation(
         } else {right_variable.value.as_ref().unwrap().double.as_ref().unwrap().clone()};
 
     let variable = Variable{
+        is_reasigned: false,
         variable_type: Some(TokenType::Bool),
         name: Some(instruction.assign_to_variable.as_ref().unwrap().clone()),
         value: Some(Value{
@@ -1375,6 +1390,7 @@ fn execute_equal_operation(
         } else {right_variable.value.as_ref().unwrap().double.as_ref().unwrap().clone()};
 
     let variable = Variable{
+        is_reasigned: false,
         variable_type: Some(TokenType::Bool),
         name: Some(instruction.assign_to_variable.as_ref().unwrap().clone()),
         value: Some(Value{
@@ -1475,6 +1491,7 @@ fn execute_not_equal_operation(
         } else {right_variable.value.as_ref().unwrap().double.as_ref().unwrap().clone()};
 
     let variable = Variable{
+        is_reasigned: false,
         variable_type: Some(TokenType::Bool),
         name: Some(instruction.assign_to_variable.as_ref().unwrap().clone()),
         value: Some(Value{

@@ -1,13 +1,12 @@
-use crate::vm::{
-    syntax_tree::ConvertInstruction,
-    tokens::TokenType,
-    environments::{
-        Environment,
-        Variable,
-        Value,
-        ValueType
-    }
+use crate::tokens::TokenType;
+use crate::environments::{
+    Environment,
+    Variable,
+    Value,
+    ValueType
 };
+
+use crate::vm::syntax_tree::ConvertInstruction;
 
 
 pub fn execute_convert_instruction(
@@ -87,6 +86,7 @@ fn execute_convert_to_bool(
     }
 
     let variable = Variable{
+        is_reasigned: false,
         variable_type: Some(TokenType::Bool),
         name: Some(instruction.convert_to.as_ref().unwrap().clone()),
         value: Some(Value{
@@ -185,6 +185,7 @@ fn execute_convert_to_int(
     }
 
     let variable = Variable{
+        is_reasigned: false,
         variable_type: Some(TokenType::Int),
         name: Some(instruction.convert_to.as_ref().unwrap().clone()),
         value: Some(Value{
@@ -283,6 +284,7 @@ fn execute_convert_to_double(
     }
 
     let variable = Variable{
+        is_reasigned: false,
         variable_type: Some(TokenType::Double),
         name: Some(instruction.convert_to.as_ref().unwrap().clone()),
         value: Some(Value{
@@ -380,6 +382,7 @@ fn execute_convert_to_char(
     }
 
     let variable = Variable{
+        is_reasigned: false,
         variable_type: Some(TokenType::Char),
         name: Some(instruction.convert_to.as_ref().unwrap().clone()),
         value: Some(Value{
@@ -493,6 +496,7 @@ fn execute_convert_to_string(
     }
 
     let variable = Variable{
+        is_reasigned: false,
         variable_type: Some(TokenType::String),
         name: Some(instruction.convert_to.as_ref().unwrap().clone()),
         value: Some(Value{

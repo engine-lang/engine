@@ -4,7 +4,7 @@ use std::collections::{
 };
 use std::process::Command;
 
-use crate::compiler::environments::{
+use crate::environments::{
     Environment,
     EnvironmentScope,
     Variable
@@ -26,7 +26,7 @@ use crate::compiler::syntax_tree::{
     DefineVariableNode,
     DefineIfStatementNode
 };
-use crate::compiler::tokens::TokenType;
+use crate::tokens::TokenType;
 
 
 #[derive(Debug)]

@@ -8,8 +8,8 @@ use crate::interpreter::syntax_tree::DefineIfElseNode;
 use crate::interpreter::syntax_tree::DefineIfNode;
 use crate::interpreter::syntax_tree::DefineIfStatementNode;
 use crate::interpreter::syntax_tree::StatementsNode;
-use crate::interpreter::tokens::Token;
-use crate::interpreter::tokens::TokenType;
+use crate::tokens::Token;
+use crate::tokens::TokenType;
 use crate::interpreter::syntax_tree::{
     construct_expression_node,
     DefineBoolNode,

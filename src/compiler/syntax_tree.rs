@@ -1,6 +1,6 @@
 use std::collections::VecDeque;
 
-use crate::compiler::tokens::{
+use crate::tokens::{
     Token,
     TokenType
 };

@@ -1,7 +1,5 @@
-mod tokens;
 mod file;
 mod syntax_tree;
-mod environments;
 mod instructions_construct;
 mod assign_instructions;
 mod convert_instructions;
@@ -12,10 +10,11 @@ use std::collections::HashMap;
 use std::panic;
 use std::env;
 
-use environments::{
+use crate::environments::{
     Environment,
     EnvironmentScope
 };
+
 use syntax_tree::InstructionType;
 use file::File;
 use instructions_construct::construct_instruction;

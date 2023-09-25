@@ -1,13 +1,13 @@
 use std::collections::HashMap;
 
 use crate::interpreter::symantic_analyzer::Analyzer;
-use crate::interpreter::tokens::TokenType;
+use crate::tokens::TokenType;
 use crate::interpreter::syntax_tree::{
     StatementType,
     DefineIfStatementNode,
     StatementsNode
 };
-use crate::interpreter::environments::{
+use crate::environments::{
     Variable,
     Value,
     ValueType,

@@ -1,10 +1,10 @@
 use crate::interpreter::character::Character;
-use crate::interpreter::tokens::{
+use crate::tokens::{
     Token,
-    TokenType
+    TokenType,
+    get_token_type
 };
 use crate::interpreter::file::File;
-use crate::interpreter::tokens::get_token_type;
 use crate::constants::VARIABLE_MAX_LENGTH;
 
 

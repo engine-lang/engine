@@ -1,3 +1,5 @@
+use crate::tokens::TokenType;
+
 use crate::vm::{
     syntax_tree::AssignInstruction,
     syntax_tree::{
@@ -12,7 +14,6 @@ use crate::vm::{
         GoToInstruction
     },
 };
-use crate::vm::tokens::TokenType;
 
 
 fn split_line(

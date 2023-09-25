@@ -6,8 +6,10 @@ use crate::compiler::lexer::Lexer;
 use crate::compiler::syntax_tree::DefineElseNode;
 use crate::compiler::syntax_tree::DefineIfElseNode;
 use crate::compiler::syntax_tree::DefineIfNode;
-use crate::compiler::tokens::Token;
-use crate::compiler::tokens::TokenType;
+use crate::tokens::{
+    Token,
+    TokenType
+};
 use crate::compiler::syntax_tree::{
     StatementsNode,
     construct_expression_node,

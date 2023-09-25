@@ -1,13 +1,12 @@
-use crate::vm::{
-    syntax_tree::AssignInstruction,
-    tokens::TokenType,
-    environments::{
-        Environment,
-        Variable,
-        Value,
-        ValueType
-    }
+use crate::tokens::TokenType;
+use crate::environments::{
+    Environment,
+    Variable,
+    Value,
+    ValueType
 };
+
+use crate::vm::syntax_tree::AssignInstruction;
 
 
 pub fn execute_assign_instruction(
@@ -59,6 +58,7 @@ fn execute_assign_bool_instruction(
     }
 
     let variable = Variable{
+        is_reasigned: false,
         variable_type: Some(TokenType::Bool),
         name: Some(instruction.variable_name.as_ref().unwrap().clone()),
         value: Some(Value{
@@ -97,6 +97,7 @@ fn execute_assign_int_instruction(
     let value = value.unwrap();
 
     let variable = Variable{
+        is_reasigned: false,
         variable_type: Some(TokenType::Int),
         name: Some(instruction.variable_name.as_ref().unwrap().clone()),
         value: Some(Value{
@@ -135,6 +136,7 @@ fn execute_assign_double_instruction(
     let value = value.unwrap();
 
     let variable = Variable{
+        is_reasigned: false,
         variable_type: Some(TokenType::Double),
         name: Some(instruction.variable_name.as_ref().unwrap().clone()),
         value: Some(Value{
@@ -181,6 +183,7 @@ fn execute_assign_char_instruction(
     };
 
     let variable = Variable{
+        is_reasigned: false,
         variable_type: Some(TokenType::Char),
         name: Some(instruction.variable_name.as_ref().unwrap().clone()),
         value: Some(Value{
@@ -253,6 +256,7 @@ fn execute_assign_string_instruction(
     }
 
     let variable = Variable{
+        is_reasigned: false,
         variable_type: Some(TokenType::String),
         name: Some(instruction.variable_name.as_ref().unwrap().clone()),
         value: Some(Value{

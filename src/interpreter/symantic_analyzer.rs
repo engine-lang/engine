@@ -3,11 +3,11 @@ use std::collections::{
     VecDeque
 };
 
-use crate::interpreter::tokens::{
+use crate::tokens::{
     TokenType,
     Token
 };
-use crate::interpreter::environments::{
+use crate::environments::{
     Environment,
     EnvironmentScope,
     Variable

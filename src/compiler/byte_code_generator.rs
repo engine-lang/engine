@@ -17,10 +17,10 @@ use crate::compiler::syntax_tree::{
     DefineVariableNode,
     DefineIfStatementNode
 };
-use crate::compiler::tokens::TokenType;
+use crate::tokens::TokenType;
 use crate::constants::VERSION;
 use crate::constants::compiler::BYTECODE_SPACE_STRING_LENGTH;
-use crate::compiler::environments::{
+use crate::environments::{
     Environment,
     EnvironmentScope,
     Variable

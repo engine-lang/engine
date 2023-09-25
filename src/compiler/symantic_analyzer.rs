@@ -3,8 +3,8 @@ use std::collections::{
     VecDeque
 };
 
-use crate::compiler::tokens::TokenType;
-use crate::compiler::environments::{
+use crate::tokens::TokenType;
+use crate::environments::{
     Environment,
     EnvironmentScope,
     Variable

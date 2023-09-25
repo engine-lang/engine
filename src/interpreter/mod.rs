@@ -1,11 +1,9 @@
 mod character;
 mod file;
 mod lexer;
-mod tokens;
 mod parser;
 mod syntax_tree;
 mod symantic_analyzer;
-mod environments;
 mod executes;
 
 use std::panic;

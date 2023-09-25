@@ -8,7 +8,7 @@ use crate::environments::{
     ValueType
 };
 
-use crate::vm::syntax_tree::{
+use crate::syntax_tree::{
     Instruction,
     InstructionType,
     PrintInstruction,

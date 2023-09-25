@@ -2,11 +2,6 @@ use std::collections::HashMap;
 
 use crate::interpreter::symantic_analyzer::Analyzer;
 use crate::tokens::TokenType;
-use crate::interpreter::syntax_tree::{
-    StatementType,
-    DefineIfStatementNode,
-    StatementsNode
-};
 use crate::environments::{
     Variable,
     Value,
@@ -14,7 +9,7 @@ use crate::environments::{
     Environment,
     EnvironmentScope
 };
-use crate::interpreter::syntax_tree::{
+use crate::syntax_tree::{
     DefineBoolNode,
     DefineVariableNode,
     DefineIntNode,
@@ -25,7 +20,10 @@ use crate::interpreter::syntax_tree::{
     DefinePrintNode,
     OperationNode,
     OperatorType,
-    StatementNode
+    StatementNode,
+    StatementType,
+    DefineIfStatementNode,
+    StatementsNode
 };
 use crate::interpreter::symantic_analyzer::{
     analyze_define_bool,

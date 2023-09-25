@@ -9,7 +9,7 @@ use crate::environments::{
     EnvironmentScope,
     Variable
 };
-use crate::compiler::syntax_tree::{
+use crate::syntax_tree::{
     StatementsNode,
     StatementType,
     DefineBoolNode,

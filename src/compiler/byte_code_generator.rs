@@ -1,7 +1,7 @@
 use std::collections::{HashMap, VecDeque};
 
 use crate::compiler::file::File;
-use crate::compiler::syntax_tree::{
+use crate::syntax_tree::{
     StatementsNode,
     StatementNode,
     StatementType,

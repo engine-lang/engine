@@ -1,5 +1,6 @@
 mod constants;
 mod tokens;
+mod syntax_tree;
 mod environments;
 
 mod compiler;

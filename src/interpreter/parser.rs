@@ -3,14 +3,9 @@ use std::vec;
 use std::vec::Vec;
 
 use crate::interpreter::lexer::Lexer;
-use crate::interpreter::syntax_tree::DefineElseNode;
-use crate::interpreter::syntax_tree::DefineIfElseNode;
-use crate::interpreter::syntax_tree::DefineIfNode;
-use crate::interpreter::syntax_tree::DefineIfStatementNode;
-use crate::interpreter::syntax_tree::StatementsNode;
 use crate::tokens::Token;
 use crate::tokens::TokenType;
-use crate::interpreter::syntax_tree::{
+use crate::syntax_tree::{
     construct_expression_node,
     DefineBoolNode,
     DefineIntNode,
@@ -22,6 +17,11 @@ use crate::interpreter::syntax_tree::{
     DefinePrintNode,
     StatementNode,
     StatementType,
+    DefineElseNode,
+    DefineIfElseNode,
+    DefineIfNode,
+    DefineIfStatementNode,
+    StatementsNode,
 };
 
 

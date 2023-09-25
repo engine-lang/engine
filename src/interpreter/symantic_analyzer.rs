@@ -12,7 +12,7 @@ use crate::environments::{
     EnvironmentScope,
     Variable
 };
-use crate::interpreter::syntax_tree::{
+use crate::syntax_tree::{
     DefineBoolNode,
     DefineVariableNode,
     DefineIntNode,

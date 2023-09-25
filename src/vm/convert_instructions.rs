@@ -6,7 +6,7 @@ use crate::environments::{
     ValueType
 };
 
-use crate::vm::syntax_tree::ConvertInstruction;
+use crate::syntax_tree::ConvertInstruction;
 
 
 pub fn execute_convert_instruction(

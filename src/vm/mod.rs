@@ -1,5 +1,4 @@
 mod file;
-mod syntax_tree;
 mod instructions_construct;
 mod assign_instructions;
 mod convert_instructions;
@@ -15,7 +14,7 @@ use crate::environments::{
     EnvironmentScope
 };
 
-use syntax_tree::InstructionType;
+use crate::syntax_tree::InstructionType;
 use file::File;
 use instructions_construct::construct_instruction;
 use instructions_executers::execute_instruction;

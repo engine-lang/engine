@@ -1,18 +1,16 @@
 use crate::tokens::TokenType;
 
-use crate::vm::{
-    syntax_tree::AssignInstruction,
-    syntax_tree::{
-        Instruction,
-        InstructionType,
-        PrintInstruction,
-        ConvertInstruction,
-        OperationInstruction,
-        InputInstruction,
-        IfInstruction,
-        ElseInstruction,
-        GoToInstruction
-    },
+use crate::syntax_tree::{
+    Instruction,
+    AssignInstruction,
+    InstructionType,
+    PrintInstruction,
+    ConvertInstruction,
+    OperationInstruction,
+    InputInstruction,
+    IfInstruction,
+    ElseInstruction,
+    GoToInstruction
 };
 
 

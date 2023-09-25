@@ -6,7 +6,7 @@ use crate::environments::{
     ValueType
 };
 
-use crate::vm::syntax_tree::AssignInstruction;
+use crate::syntax_tree::AssignInstruction;
 
 
 pub fn execute_assign_instruction(

@@ -6,7 +6,7 @@ use crate::environments::{
     ValueType
 };
 
-use crate::vm::syntax_tree::OperationInstruction;
+use crate::syntax_tree::OperationInstruction;
 
 
 pub fn execute_operation_instruction(

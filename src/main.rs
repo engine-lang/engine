@@ -1,11 +1,17 @@
 mod constants;
 mod compiler;
 mod interpreter;
+mod vm;
 
-use clap::{Arg, Command, ArgMatches};
+use clap::{
+    Arg,
+    Command,
+    ArgMatches
+};
 
 use crate::compiler::compile;
 use crate::interpreter::interpret;
+use crate::vm::execute_byte_code;
 
 
 fn parse_args() -> ArgMatches{
@@ -30,10 +36,20 @@ fn parse_args() -> ArgMatches{
         .num_args(0)
         .required(false);
 
+    let virtual_machine_arg = Arg::new("virtual-machine")
+        .long("vm")
+        .value_parser(clap::value_parser!(bool))
+        .default_value("false")
+        .default_missing_value("true")
+        .num_args(0)
+        .required(false)
+        .conflicts_with("executable");
+
     let args = Command::new("Engine").args([
         file_path_arg,
         executable_arg,
-        byte_code_arg
+        byte_code_arg,
+        virtual_machine_arg
     ])
         .about("Engine Programming Language.")
         .long_about("Engine Programming Language Ecosystem.");
@@ -54,7 +70,14 @@ fn main() {
         matches.get_one::<bool>("executable").unwrap().clone()
     {true} else {false};
 
-    let result = if executable || generate_byte_code{compile(generate_byte_code)} else {interpret()};
+    let result = if executable || generate_byte_code{
+        compile(generate_byte_code)
+    } else if matches.contains_id("virtual-machine") && matches.get_one::<bool>("virtual-machine").unwrap().clone() {
+        execute_byte_code()
+    } else {
+        interpret()
+    };
+
     if result.is_err(){
         panic!("{}", result.unwrap_err());
     }

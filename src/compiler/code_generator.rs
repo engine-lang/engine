@@ -120,6 +120,7 @@ impl CodeGenerator{
 
 impl CodeGenerator{
     pub fn generate(&mut self) -> Result<(), String>{
+        self.file.writeln(String::from("#![allow(arithmetic_overflow)]"));
         self.file.writeln(String::from("use std::io;"));
         self.file.writeln(String::from("use std::panic;"));
         self.file.writeln(String::from("fn main(){"));

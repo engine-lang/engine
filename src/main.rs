@@ -76,7 +76,10 @@ fn main() {
 
     let result = if executable || generate_byte_code{
         compile(generate_byte_code)
-    } else if matches.contains_id("virtual-machine") && matches.get_one::<bool>("virtual-machine").unwrap().clone() {
+    } else if
+        matches.contains_id("virtual-machine") &&
+        matches.get_one::<bool>("virtual-machine").unwrap().clone()
+    {
         execute_byte_code()
     } else {
         interpret()

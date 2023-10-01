@@ -4,6 +4,10 @@ use std::collections::{
 };
 
 use crate::tokens::TokenType;
+use crate::constants::{
+    INT_NUMBER_MAX_LENGTH,
+    DOUBLE_NUMBER_MAX_LENGTH
+};
 use crate::environments::{
     Environment,
     EnvironmentScope,
@@ -884,6 +888,30 @@ fn analyze_operation_node(
                 }
                 return Ok(variable_type);
             }
+
+            if operation_node.value.as_ref().unwrap().token_type == TokenType::IntNumber{
+                if operation_node.value.as_ref().unwrap().value.len() > INT_NUMBER_MAX_LENGTH as usize{
+                    return Err(format!(
+                        "Engine Compiler: Syntax Error -> {}, line {}:{}.",
+                        format!(
+                            "The litral `{}` does not fit into int type",
+                            &operation_node.value.as_ref().unwrap().value),
+                        &operation_node.value.as_ref().unwrap().start_line,
+                        &operation_node.value.as_ref().unwrap().start_pos));
+                }
+            }
+            else if operation_node.value.as_ref().unwrap().token_type == TokenType::DoubleNumber{
+                if operation_node.value.as_ref().unwrap().value.len() > DOUBLE_NUMBER_MAX_LENGTH as usize{
+                    return Err(format!(
+                        "Engine Compiler: Syntax Error -> {}, line {}:{}.",
+                        format!(
+                            "The litral `{}` does not fit into double type",
+                            &operation_node.value.as_ref().unwrap().value),
+                        &operation_node.value.as_ref().unwrap().start_line,
+                        &operation_node.value.as_ref().unwrap().start_pos));
+                }
+            }
+
             return Ok(operation_node.value.as_ref().unwrap().token_type.clone());
         }
     }

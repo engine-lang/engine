@@ -674,11 +674,9 @@ impl Parser {
             TokenType::Space,
             TokenType::MultiLineComment,
         ])?;
-        self._match(vec![
-            TokenType::Variable,
-        ])?;
-        node.variable = Some(self.current_token.clone());
-        self._move()?;
+        let mut tokens_array: VecDeque<Token> = VecDeque::new();
+        self.match_expression(false, &mut tokens_array)?;
+        node.expression = Some(construct_expression_node(&mut tokens_array));
 
         self.bypass(vec![
             TokenType::Space,

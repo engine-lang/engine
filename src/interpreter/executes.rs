@@ -450,28 +450,28 @@ pub fn define_print(
     statement: DefinePrintNode
 ) -> Result<(), String>{
 
-    let variable = get_variable(analyzer, &statement.variable.as_ref().unwrap().value)?;
-    let value = variable.value.as_ref().unwrap();
+    let node_value = execute_operation_node(
+        &analyzer, statement.expression.as_ref().unwrap())?;
 
-    if value.value_type == Some(ValueType::Boolean){
-        if value.boolean == Some(true){
+    if node_value.value_type == Some(ValueType::Boolean){
+        if node_value.boolean == Some(true){
             print!("True");
         }
         else{
             print!("False");
         }
     }
-    else if value.value_type == Some(ValueType::Integer){
-        print!("{}", value.int.unwrap());
+    else if node_value.value_type == Some(ValueType::Integer){
+        print!("{}", node_value.int.unwrap());
     }
-    else if value.value_type == Some(ValueType::Double){
-        print!("{}", value.double.unwrap());
+    else if node_value.value_type == Some(ValueType::Double){
+        print!("{}", node_value.double.unwrap());
     }
-    else if value.value_type == Some(ValueType::Character){
-        print!("{}", value.character.unwrap());
+    else if node_value.value_type == Some(ValueType::Character){
+        print!("{}", node_value.character.unwrap());
     }
-    else if value.value_type == Some(ValueType::String){
-        print!("{}", value.string.as_ref().unwrap());
+    else if node_value.value_type == Some(ValueType::String){
+        print!("{}", node_value.string.as_ref().unwrap());
     }
 
     use std::io::Write;
@@ -479,10 +479,7 @@ pub fn define_print(
     /* Flush Stdin */
     if std::io::stdout().flush().is_err(){
         return Err(format!(
-            "Engine Interpreter: Execute Error -> {}, line {}:{}.",
-            "Failed to print to console",
-            statement.variable.as_ref().unwrap().start_line,
-            statement.variable.as_ref().unwrap().start_pos));
+            "Engine Interpreter: Execute Error -> Failed to print to console."));
     }
 
     return Ok(());

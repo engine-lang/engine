@@ -321,15 +321,7 @@ pub fn analyze_define_print(
     statement: DefinePrintNode
 ) -> Result<(), String>{
 
-    if !is_variable_exists(&analyzer, &statement.variable.as_ref().unwrap().value){
-        return Err(format!(
-            "Engine Interpreter: Syntax Error -> {}, line {}:{}.",
-            format!(
-                "Undefined variable `{}`",
-                statement.variable.as_ref().unwrap().value),
-            statement.variable.as_ref().unwrap().start_line,
-            statement.variable.as_ref().unwrap().start_pos));
-    }
+    analyze_operation_node(&analyzer, statement.expression.as_ref().unwrap())?;
 
     return Ok(());
 }

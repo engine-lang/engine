@@ -1,11 +1,12 @@
-use crate::compiler::character::Character;
+use crate::character::Character;
+use crate::constants::VARIABLE_MAX_LENGTH;
+
 use crate::tokens::{
     Token,
     TokenType,
     get_token_type
 };
 use crate::compiler::file::File;
-use crate::constants::VARIABLE_MAX_LENGTH;
 
 
 #[derive(Debug)]

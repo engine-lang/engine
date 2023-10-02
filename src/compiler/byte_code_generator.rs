@@ -17,6 +17,7 @@ use crate::syntax_tree::{
     DefineVariableNode,
     DefineIfStatementNode
 };
+use crate::constants::Mode;
 use crate::tokens::TokenType;
 use crate::constants::VERSION;
 use crate::constants::compiler::BYTECODE_SPACE_STRING_LENGTH;
@@ -48,7 +49,8 @@ impl ByteCodeGenerator{
 
         let new_file_path = _parent_folder_path + &file_name + &String::from(".en.byte");
 
-        let mut _file = File::create_new(new_file_path.clone())?;
+        let mut _file = File::create_new(
+            new_file_path.clone(), Mode::ByteCodeGenerator)?;
 
         let mut environments_stack = VecDeque::new();
         environments_stack.push_back(Environment {

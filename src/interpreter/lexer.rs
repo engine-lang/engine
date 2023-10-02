@@ -1,4 +1,4 @@
-use crate::interpreter::character::Character;
+use crate::character::Character;
 use crate::tokens::{
     Token,
     TokenType,

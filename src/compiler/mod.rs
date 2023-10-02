@@ -1,4 +1,3 @@
-mod character;
 mod file;
 mod lexer;
 mod parser;
@@ -9,6 +8,8 @@ mod byte_code_generator;
 
 use std::panic;
 use std::env;
+
+use crate::constants::Mode;
 
 use file::File;
 use lexer::Lexer;
@@ -46,7 +47,10 @@ pub fn compile(generate_byte_code: bool) -> Result<(), String>{
 
     let file_name_without_ext = ext_arr.join(".");
 
-    let file = File::new(&args[1]);
+    let file = File::new(
+        &args[1],
+        if generate_byte_code {Mode::ByteCodeGenerator} else {Mode::Compiler}
+    );
     let lexer = Lexer::new(file);
     if lexer.is_err(){
         panic!("{}", lexer.unwrap_err());

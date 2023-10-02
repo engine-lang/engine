@@ -1,4 +1,5 @@
 mod constants;
+mod character;
 mod tokens;
 mod syntax_tree;
 mod environments;

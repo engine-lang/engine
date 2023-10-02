@@ -1,3 +1,6 @@
+use crate::constants::Mode;
+
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct Character{
     code: [u8; 4],
@@ -5,14 +8,15 @@ pub struct Character{
 }
 
 impl Character{
-    pub fn new(code: [u8; 4]) -> Self{
+    pub fn new(code: [u8; 4], mode: Mode) -> Self{
         use std::str::from_utf8;
 
         if code[0] < 128{
             return Character{
                 string: String::from(
                     from_utf8(&code[0..1])
-                    .expect("Engine Interpreter: Token Error -> Not valid utf-8 character.")),
+                    .expect(format!(
+                        "{mode}: Token Error -> Not valid utf-8 character.").as_str())),
                 code,
             }
         }
@@ -20,7 +24,8 @@ impl Character{
             return Character{
                 string: String::from(
                     from_utf8(&code[0..2])
-                    .expect("Engine Interpreter: Token Error -> Not valid utf-8 character.")),
+                    .expect(format!(
+                        "{mode}: Token Error -> Not valid utf-8 character.").as_str())),
                 code,
             }
         }
@@ -28,7 +33,8 @@ impl Character{
             return Character{
                 string: String::from(
                     from_utf8(&code[0..3])
-                    .expect("Engine Interpreter: Token Error -> Not valid utf-8 character.")),
+                    .expect(format!(
+                        "{mode}: Token Error -> Not valid utf-8 character.").as_str())),
                 code,
             }
         }
@@ -36,7 +42,8 @@ impl Character{
             return Character{
                 string: String::from(
                     from_utf8(&code[0..4])
-                    .expect("Engine Interpreter: Token Error -> Not valid utf-8 character.")),
+                    .expect(format!(
+                        "{mode}: Token Error -> Not valid utf-8 character.").as_str())),
                 code,
             }
         }

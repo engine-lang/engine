@@ -9,7 +9,6 @@ use crate::environments::{
     EnvironmentScope,
     Variable
 };
-use crate::compiler::file::File;
 use crate::syntax_tree::{
     StatementsNode,
     StatementNode,
@@ -27,6 +26,9 @@ use crate::syntax_tree::{
     DefineIfStatementNode
 };
 use crate::tokens::TokenType;
+use crate::constants::Mode;
+
+use crate::compiler::file::File;
 
 
 #[derive(Debug)]
@@ -43,7 +45,7 @@ impl CodeGenerator{
     pub fn new(
         syntax_tree: StatementsNode,
         parent_folder_path: String,
-        file_name: String
+        file_name: String,
     ) -> Result<Self, std::io::Error>{
 
         let mut _parent_folder_path = parent_folder_path.clone();
@@ -51,7 +53,8 @@ impl CodeGenerator{
 
         let new_file_path = _parent_folder_path + &file_name + &String::from(".rs");
 
-        let mut _file = File::create_new(new_file_path.clone())?;
+        let mut _file = File::create_new(
+            new_file_path.clone(), Mode::Compiler)?;
 
         let mut environments_stack = VecDeque::new();
         environments_stack.push_back(Environment {
@@ -976,7 +979,7 @@ impl CodeGenerator{
     }
 
     pub fn clean(&mut self) -> Result<(), String>{
-        File::delete_file(self.new_file_path.clone());
+        File::delete_file(self.new_file_path.clone(), Mode::Compiler);
 
         return Ok(());
     }

@@ -1,4 +1,3 @@
-mod character;
 mod file;
 mod lexer;
 mod parser;

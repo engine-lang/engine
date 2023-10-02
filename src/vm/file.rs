@@ -3,6 +3,8 @@ use std::io::{
     BufReader
 };
 
+use crate::constants::Mode;
+
 
 #[derive(Debug)]
 pub struct File{
@@ -12,13 +14,13 @@ pub struct File{
 impl File{
     pub fn open(file_path: &String) -> Self{
         let file = std::fs::File::open(file_path).expect(format!(
-            "Engine VM: File Error -> Can't open the file `{}`.",
-            file_path).as_str());
+            "{}: File Error -> Can't open the file `{}`.",
+            Mode::VirtualMachine, file_path).as_str());
 
         return File{
             reader: Some(BufReader::new(file.try_clone().expect(format!(
-                "Engine VM: File Error -> Failed Construct file reader `{}`.",
-                file_path).as_str()))),
+                "{}: File Error -> Failed Construct file reader `{}`.",
+                Mode::VirtualMachine, file_path).as_str()))),
         };
     }
 }

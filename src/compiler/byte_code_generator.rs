@@ -1,6 +1,9 @@
-use std::collections::{HashMap, VecDeque};
+use std::collections::{
+    HashMap,
+    VecDeque
+};
 
-use crate::compiler::file::File;
+use crate::file::File;
 use crate::syntax_tree::{
     StatementsNode,
     StatementNode,

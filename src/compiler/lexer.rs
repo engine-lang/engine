@@ -6,7 +6,7 @@ use crate::tokens::{
     TokenType,
     get_token_type
 };
-use crate::compiler::file::File;
+use crate::file::File;
 
 
 #[derive(Debug)]

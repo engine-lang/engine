@@ -1,4 +1,3 @@
-mod file;
 mod instructions_construct;
 mod assign_instructions;
 mod convert_instructions;
@@ -15,7 +14,7 @@ use crate::environments::{
 };
 
 use crate::syntax_tree::InstructionType;
-use file::File;
+use crate::file::File;
 use instructions_construct::construct_instruction;
 use instructions_executers::execute_instruction;
 
@@ -37,9 +36,9 @@ pub fn execute_byte_code() -> Result<(), String>{
         variables: HashMap::new()
     };
 
-    let mut file = File::open(&args[1]);
+    let mut file = File::open_byte_file(&args[1]);
 
-    let info = file.read_line();
+    let info = file.read_byte_code_line();
     if info.is_err(){
         panic!(
             "Engine VM: File Error -> {}, line: 1:1",
@@ -51,7 +50,7 @@ pub fn execute_byte_code() -> Result<(), String>{
     let mut goto_lines_stack: Vec<u128> = Vec::new();
 
     loop{
-        let line = file.read_line();
+        let line = file.read_byte_code_line();
         if line.is_err(){
             panic!(
                 "Engine VM: File Error -> {}, line: {}:1",

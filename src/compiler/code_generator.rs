@@ -28,7 +28,7 @@ use crate::syntax_tree::{
 use crate::tokens::TokenType;
 use crate::constants::Mode;
 
-use crate::compiler::file::File;
+use crate::file::File;
 
 
 #[derive(Debug)]

@@ -104,14 +104,12 @@ impl File{
         let mut first_char = [0; 1];
         self.file.read(&mut first_char).expect(format!(
             "{}: File Error -> Error in reading character `{}`.",
-            self.mode,
-            self.file_path).as_str());
+            self.mode, self.file_path).as_str());
 
         if first_char[0] < 127{
             self.file.seek(SeekFrom::Start(self.position)).expect(format!(
                 "{}: File Error -> Error in reading character `{}`.",
-                self.mode,
-                self.file_length).as_str());
+                self.mode, self.file_length).as_str());
 
             return Character::new([first_char[0], 0, 0, 0], self.mode.clone());
         }
@@ -119,13 +117,11 @@ impl File{
             let mut second_char = [0; 1];
             self.file.read(&mut second_char).expect(format!(
                 "{}: File Error -> Error in reading character `{}`.",
-                self.mode,
-                self.file_path).as_str());
+                self.mode, self.file_path).as_str());
 
             self.file.seek(SeekFrom::Start(self.position)).expect(format!(
                 "{}: File Error -> Error in reading character `{}`.",
-                self.mode,
-                self.file_length).as_str());
+                self.mode, self.file_length).as_str());
 
             return Character::new([
                 first_char[0], second_char[0], 0, 0], self.mode.clone());
@@ -134,13 +130,11 @@ impl File{
             let mut char_arr = [0; 2];
             self.file.read(&mut char_arr).expect(format!(
                 "{}: File Error -> Error in reading character `{}`.",
-                self.mode,
-                self.file_path).as_str());
+                self.mode, self.file_path).as_str());
 
             self.file.seek(SeekFrom::Start(self.position)).expect(format!(
                 "{}: File Error -> Error in reading character `{}`.",
-                self.mode,
-                self.file_length).as_str());
+                self.mode, self.file_length).as_str());
 
             return Character::new([
                 first_char[0], char_arr[0], char_arr[1], 0], self.mode.clone());
@@ -149,13 +143,11 @@ impl File{
             let mut char_arr = [0; 3];
             self.file.read(&mut char_arr).expect(format!(
                 "{}: File Error -> Error in reading character `{}`.",
-                self.mode,
-                self.file_path).as_str());
+                self.mode, self.file_path).as_str());
 
             self.file.seek(SeekFrom::Start(self.position)).expect(format!(
                 "{}: File Error -> Error in reading character `{}`.",
-                self.mode,
-                self.file_length).as_str());
+                self.mode, self.file_length).as_str());
 
             return Character::new([
                 first_char[0], char_arr[0], char_arr[1], char_arr[2]], self.mode.clone());
@@ -180,8 +172,7 @@ impl File{
         let mut first_char = [0; 1];
         self.file.read(&mut first_char).expect(format!(
             "{}: File Error -> Error in reading character `{}`.",
-            self.mode,
-            self.file_path).as_str());
+            self.mode, self.file_path).as_str());
 
         if first_char[0] < 127{
             self.position += 1;
@@ -195,8 +186,7 @@ impl File{
             let mut second_char = [0; 1];
             self.file.read(&mut second_char).expect(format!(
                 "{}: File Error -> Error in reading character `{}`.",
-                self.mode,
-                self.file_path).as_str());
+                self.mode, self.file_path).as_str());
 
             self.position += 2;
             let current = Character::new(
@@ -209,8 +199,7 @@ impl File{
             let mut char_arr = [0; 2];
             self.file.read(&mut char_arr).expect(format!(
                 "{}: File Error -> Error in reading character `{}`.",
-                self.mode,
-                self.file_path).as_str());
+                self.mode, self.file_path).as_str());
 
             self.position += 3;
             let current = Character::new(
@@ -224,8 +213,7 @@ impl File{
             let mut char_arr = [0; 3];
             self.file.read(&mut char_arr).expect(format!(
                 "{}: File Error -> Error in reading character `{}`.",
-                self.mode,
-                self.file_path).as_str());
+                self.mode, self.file_path).as_str());
 
             self.position += 4;
             let current = Character::new(

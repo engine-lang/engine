@@ -1,4 +1,3 @@
-mod file;
 mod lexer;
 mod parser;
 mod symantic_analyzer;
@@ -11,7 +10,7 @@ use std::env;
 
 use crate::constants::Mode;
 
-use file::File;
+use crate::file::File;
 use lexer::Lexer;
 use parser::Parser;
 use symantic_analyzer::{Analyzer, analyze};

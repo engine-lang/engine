@@ -1,4 +1,3 @@
-mod file;
 mod lexer;
 mod parser;
 mod symantic_analyzer;
@@ -7,7 +6,8 @@ mod executes;
 use std::panic;
 use std::env;
 
-use file::File;
+use crate::constants::Mode;
+use crate::file::File;
 use lexer::Lexer;
 use parser::Parser;
 use symantic_analyzer::Analyzer;
@@ -27,7 +27,7 @@ pub fn interpret() -> Result<(), String>{
         }
     }));
 
-    let file = File::new(&args[1]);
+    let file = File::new(&args[1], Mode::Interpreter);
     let lexer = Lexer::new(file);
     if lexer.is_err(){
         panic!(

@@ -187,12 +187,12 @@ impl DefineVarNode{
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct DefinePrintNode{
-    pub variable: Option<Token>,
+    pub expression: Option<OperationNode>,
 }
 impl DefinePrintNode{
     pub fn new() -> Self{
         return DefinePrintNode{
-            variable: None,
+            expression: None,
         };
     }
 }

@@ -491,19 +491,16 @@ impl CodeGenerator{
         &mut self, statement: &DefinePrintNode
     ) -> Result<(), String>{
 
+        let result = self.define_operation_node_variables(
+            statement.expression.as_ref().unwrap())?;
+
         /* Print Variable */
-        self.file.writeln(format!(
-            "print!(\"{{}}\", variable_{});",
-            statement.variable.as_ref().unwrap().value));
+        self.file.writeln(format!("print!(\"{{}}\", {});", result.0));
 
         /* Flush Variable */
         self.file.writeln(format!("if io::stdout().flush().is_err(){{"));
         self.file.writeln(format!(
-            "panic!(\"{}\");",
-            format!(
-                "Engine Compiler: Compiler Error -> Error in printing to console, line: {}:{}",
-                statement.variable.as_ref().unwrap().start_line,
-                statement.variable.as_ref().unwrap().start_pos)));
+            "panic!(\"Engine Compiler: Compiler Error -> Error in printing to console\");"));
         self.file.writeln(format!("}}"));
 
         return Ok(());

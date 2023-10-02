@@ -921,12 +921,12 @@ impl ByteCodeGenerator{
         &mut self, statement: &DefinePrintNode
     ) -> Result<(), String>{
 
-        let variable_name = self.generate_variable_name(
-            &statement.variable.as_ref().unwrap().value)?;
+        let result = self.define_operation_node_variables(
+            statement.expression.as_ref().unwrap())?;
 
         let current_line = self.get_current_line();
         self.file.writeln(format!(
-            "{current_line}:Print:\"{variable_name}\""));
+            "{current_line}:Print:\"{}\"", result.0));
 
         return Ok(());
     }

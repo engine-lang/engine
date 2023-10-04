@@ -2,7 +2,10 @@ use std::collections::VecDeque;
 use std::vec;
 use std::vec::Vec;
 
-use crate::compiler::lexer::Lexer;
+use crate::lexer::{
+    Lexer,
+    next_token
+};
 use crate::tokens::{
     Token,
     TokenType
@@ -36,7 +39,7 @@ pub struct Parser{
 impl Parser{
     pub fn new(lexer: Lexer) -> Result<Self, String>{
         let mut lexer = lexer;
-        let current_token = lexer.next_token()?;
+        let current_token = next_token(&mut lexer)?;
 
         return Ok(Parser{
             lexer,
@@ -47,7 +50,7 @@ impl Parser{
 
 impl Parser{
     fn _move(&mut self) -> Result<(), String>{
-        self.current_token = self.lexer.next_token()?;
+        self.current_token = next_token(&mut self.lexer)?;
         return Ok(());
     }
 

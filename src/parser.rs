@@ -52,13 +52,151 @@ impl Parser{
 }
 
 
-pub fn _move(parser: &mut Parser) -> Result<(), String>{
+pub fn parse(parser: &mut Parser) -> Result<StatementsNode, String>{
+    let mut parser = parser;
+
+    return statements(&mut parser, true);
+}
+
+
+pub fn statement(
+    parser: &mut Parser, return_error_if_not_matched: bool
+) -> Result<(bool, StatementNode), String>{
+
+    let mut parser = parser;
+    let mut node = StatementNode::new();
+
+    if parser.current_token.token_type == TokenType::Bool{
+        node.statement_type = Some(StatementType::DefineBool);
+
+        let result = define_bool(&mut parser)?;
+        node.define_bool_statement = Some(result.1);
+
+        return Ok((result.0, node));
+    }
+    else if parser.current_token.token_type == TokenType::Int{
+        node.statement_type = Some(StatementType::DefineInt);
+
+        let result = define_int(&mut parser)?;
+        node.define_int_statement = Some(result.1);
+
+        return Ok((result.0, node));
+    }
+    else if parser.current_token.token_type == TokenType::Double{
+        node.statement_type = Some(StatementType::DefineDouble);
+
+        let result = define_double(&mut parser)?;
+        node.define_double_statement = Some(result.1);
+
+        return Ok((result.0, node));
+    }
+    else if parser.current_token.token_type == TokenType::Char{
+        node.statement_type = Some(StatementType::DefineChar);
+
+        let result = define_char(&mut parser)?;
+        node.define_char_statement = Some(result.1);
+
+        return Ok((result.0, node));
+    }
+    else if parser.current_token.token_type == TokenType::String{
+        node.statement_type = Some(StatementType::DefineString);
+
+        let result = define_string(&mut parser)?;
+        node.define_string_statement = Some(result.1);
+
+        return Ok((result.0, node));
+    }
+    else if parser.current_token.token_type == TokenType::Var{
+        node.statement_type = Some(StatementType::DefineVar);
+
+        let result = define_var(&mut parser)?;
+        node.define_var_statement = Some(result.1);
+
+        return Ok((result.0, node));
+    }
+    else if parser.current_token.token_type == TokenType::Variable{
+        node.statement_type = Some(StatementType::DefineVariable);
+
+        let result = define_variable(&mut parser)?;
+        node.define_variable_statement = Some(result.1);
+
+        return Ok((result.0, node));
+    }
+    else if parser.current_token.token_type == TokenType::Print{
+        node.statement_type = Some(StatementType::Print);
+
+        let result = define_print(&mut parser)?;
+        node.define_print_statement = Some(result.1);
+
+        return Ok((result.0, node));
+    }
+    else if parser.current_token.token_type == TokenType::If{
+        node.statement_type = Some(StatementType::DefineIf);
+
+        let result = define_if_statement(&mut parser)?;
+        node.define_if_statement = Some(result.1);
+
+        return Ok((result.0, node));
+    }
+    else if
+        parser.current_token.token_type == TokenType::SingleLineComment ||
+        parser.current_token.token_type == TokenType::MultiLineComment ||
+        parser.current_token.token_type == TokenType::Space ||
+        parser.current_token.token_type == TokenType::NewLine
+    {
+        _move(&mut parser)?;
+
+        node.statement_type = Some(StatementType::Discarded);
+
+        return Ok((false, node));
+    }
+    else if parser.current_token.token_type == TokenType::Eof{
+        return Ok((true, node));
+    }
+
+    if return_error_if_not_matched{
+        return Err(format!(
+            "{}: Syntax Error -> {}, line {}:{}.",
+            parser.mode,
+            format!("Unexpected token {:?}", parser.current_token.token_type),
+            parser.current_token.start_line,
+            parser.current_token.start_pos));
+    }
+
+    return Ok((true, node));
+}
+
+
+fn statements(
+    parser: &mut Parser, return_error_if_not_matched: bool
+) -> Result<StatementsNode, String>{
+    let mut parser = parser;
+
+    let mut syntax_tree = StatementsNode::new();
+
+    loop {
+        let statement_node = statement(&mut parser, return_error_if_not_matched)?;
+        if statement_node.0{
+            break;
+        }
+
+        if statement_node.1.statement_type == Some(StatementType::Discarded){
+            continue;
+        }
+
+        syntax_tree.statements.push_back(statement_node.1);
+    }
+    return Ok(syntax_tree);
+}
+
+
+fn _move(parser: &mut Parser) -> Result<(), String>{
     parser.current_token = next_token(&mut parser.lexer)?;
     return Ok(());
 }
 
 
-pub fn _match(parser: &mut Parser, types: Vec::<TokenType>) -> Result<(), String>{
+fn _match(parser: &mut Parser, types: Vec::<TokenType>) -> Result<(), String>{
     for _type in &types{
         if &parser.current_token.token_type == _type{
             return Ok(());
@@ -76,7 +214,7 @@ pub fn _match(parser: &mut Parser, types: Vec::<TokenType>) -> Result<(), String
 }
 
 
-pub fn _is_matched_with(parser: &mut Parser, types: Vec::<TokenType>) -> bool{
+fn _is_matched_with(parser: &mut Parser, types: Vec::<TokenType>) -> bool{
     for _type in types{
         if parser.current_token.token_type == _type{
             return true;
@@ -86,7 +224,7 @@ pub fn _is_matched_with(parser: &mut Parser, types: Vec::<TokenType>) -> bool{
 }
 
 
-pub fn bypass(parser: &mut Parser, types: Vec::<TokenType>) -> Result<(), String>{
+fn bypass(parser: &mut Parser, types: Vec::<TokenType>) -> Result<(), String>{
     let mut parser = parser;
 
     loop {
@@ -115,7 +253,7 @@ pub fn bypass(parser: &mut Parser, types: Vec::<TokenType>) -> Result<(), String
 }
 
 
-pub fn match_expression(
+fn match_expression(
     parser: &mut Parser, allow_new_line: bool,
     tokens_array: &mut VecDeque<Token>
 ) -> Result<(), String>{
@@ -280,145 +418,7 @@ pub fn match_expression(
 }
 
 
-pub fn parse(parser: &mut Parser) -> Result<StatementsNode, String>{
-    let mut parser = parser;
-
-    return statements(&mut parser, true);
-}
-
-
-fn statements(
-    parser: &mut Parser, return_error_if_not_matched: bool
-) -> Result<StatementsNode, String>{
-    let mut parser = parser;
-
-    let mut syntax_tree = StatementsNode::new();
-
-    loop {
-        let statement_node = statement(&mut parser, return_error_if_not_matched)?;
-        if statement_node.0{
-            break;
-        }
-
-        if statement_node.1.statement_type == Some(StatementType::Discarded){
-            continue;
-        }
-
-        syntax_tree.statements.push_back(statement_node.1);
-    }
-    return Ok(syntax_tree);
-}
-
-
-pub fn statement(
-    parser: &mut Parser, return_error_if_not_matched: bool
-) -> Result<(bool, StatementNode), String>{
-
-    let mut parser = parser;
-    let mut node = StatementNode::new();
-
-    if parser.current_token.token_type == TokenType::Bool{
-        node.statement_type = Some(StatementType::DefineBool);
-
-        let result = define_bool(&mut parser)?;
-        node.define_bool_statement = Some(result.1);
-
-        return Ok((result.0, node));
-    }
-    else if parser.current_token.token_type == TokenType::Int{
-        node.statement_type = Some(StatementType::DefineInt);
-
-        let result = define_int(&mut parser)?;
-        node.define_int_statement = Some(result.1);
-
-        return Ok((result.0, node));
-    }
-    else if parser.current_token.token_type == TokenType::Double{
-        node.statement_type = Some(StatementType::DefineDouble);
-
-        let result = define_double(&mut parser)?;
-        node.define_double_statement = Some(result.1);
-
-        return Ok((result.0, node));
-    }
-    else if parser.current_token.token_type == TokenType::Char{
-        node.statement_type = Some(StatementType::DefineChar);
-
-        let result = define_char(&mut parser)?;
-        node.define_char_statement = Some(result.1);
-
-        return Ok((result.0, node));
-    }
-    else if parser.current_token.token_type == TokenType::String{
-        node.statement_type = Some(StatementType::DefineString);
-
-        let result = define_string(&mut parser)?;
-        node.define_string_statement = Some(result.1);
-
-        return Ok((result.0, node));
-    }
-    else if parser.current_token.token_type == TokenType::Var{
-        node.statement_type = Some(StatementType::DefineVar);
-
-        let result = define_var(&mut parser)?;
-        node.define_var_statement = Some(result.1);
-
-        return Ok((result.0, node));
-    }
-    else if parser.current_token.token_type == TokenType::Variable{
-        node.statement_type = Some(StatementType::DefineVariable);
-
-        let result = define_variable(&mut parser)?;
-        node.define_variable_statement = Some(result.1);
-
-        return Ok((result.0, node));
-    }
-    else if parser.current_token.token_type == TokenType::Print{
-        node.statement_type = Some(StatementType::Print);
-
-        let result = define_print(&mut parser)?;
-        node.define_print_statement = Some(result.1);
-
-        return Ok((result.0, node));
-    }
-    else if parser.current_token.token_type == TokenType::If{
-        node.statement_type = Some(StatementType::DefineIf);
-
-        let result = define_if_statement(&mut parser)?;
-        node.define_if_statement = Some(result.1);
-
-        return Ok((result.0, node));
-    }
-    else if
-        parser.current_token.token_type == TokenType::SingleLineComment ||
-        parser.current_token.token_type == TokenType::MultiLineComment ||
-        parser.current_token.token_type == TokenType::Space ||
-        parser.current_token.token_type == TokenType::NewLine
-    {
-        _move(&mut parser)?;
-
-        node.statement_type = Some(StatementType::Discarded);
-
-        return Ok((false, node));
-    }
-    else if parser.current_token.token_type == TokenType::Eof{
-        return Ok((true, node));
-    }
-
-    if return_error_if_not_matched{
-        return Err(format!(
-            "{}: Syntax Error -> {}, line {}:{}.",
-            parser.mode,
-            format!("Unexpected token {:?}", parser.current_token.token_type),
-            parser.current_token.start_line,
-            parser.current_token.start_pos));
-    }
-
-    return Ok((true, node));
-}
-
-
-pub fn define_bool(parser: &mut Parser) -> Result<(bool, DefineBoolNode), String>{
+fn define_bool(parser: &mut Parser) -> Result<(bool, DefineBoolNode), String>{
     let mut parser = parser;
     let mut tokens_array: VecDeque<Token> = VecDeque::new();
     let mut node = DefineBoolNode::new();
@@ -458,7 +458,7 @@ pub fn define_bool(parser: &mut Parser) -> Result<(bool, DefineBoolNode), String
 }
 
 
-pub fn define_int(parser: &mut Parser) -> Result<(bool, DefineIntNode), String>{
+fn define_int(parser: &mut Parser) -> Result<(bool, DefineIntNode), String>{
     let mut parser = parser;
     let mut tokens_array: VecDeque<Token> = VecDeque::new();
     let mut node = DefineIntNode::new();
@@ -498,7 +498,7 @@ pub fn define_int(parser: &mut Parser) -> Result<(bool, DefineIntNode), String>{
 }
 
 
-pub fn define_double(
+fn define_double(
     parser: &mut Parser
 ) -> Result<(bool, DefineDoubleNode), String>{
 
@@ -541,7 +541,7 @@ pub fn define_double(
 }
 
 
-pub fn define_char(parser: &mut Parser) -> Result<(bool, DefineCharNode), String>{
+fn define_char(parser: &mut Parser) -> Result<(bool, DefineCharNode), String>{
     let mut parser = parser;
     let mut tokens_array: VecDeque<Token> = VecDeque::new();
     let mut node = DefineCharNode::new();
@@ -581,7 +581,7 @@ pub fn define_char(parser: &mut Parser) -> Result<(bool, DefineCharNode), String
 }
 
 
-pub fn define_string(
+fn define_string(
     parser: &mut Parser
 ) -> Result<(bool, DefineStringNode), String>{
 
@@ -624,7 +624,7 @@ pub fn define_string(
 }
 
 
-pub fn define_var(parser: &mut Parser) -> Result<(bool, DefineVarNode), String>{
+fn define_var(parser: &mut Parser) -> Result<(bool, DefineVarNode), String>{
     let mut parser = parser;
     let mut tokens_array: VecDeque<Token> = VecDeque::new();
     let mut node = DefineVarNode::new();
@@ -666,7 +666,7 @@ pub fn define_var(parser: &mut Parser) -> Result<(bool, DefineVarNode), String>{
 }
 
 
-pub fn define_variable(
+fn define_variable(
     parser: &mut Parser
 ) -> Result<(bool, DefineVariableNode), String>{
 
@@ -707,7 +707,7 @@ pub fn define_variable(
 }
 
 
-pub fn define_print(parser: &mut Parser) -> Result<(bool, DefinePrintNode), String>{
+fn define_print(parser: &mut Parser) -> Result<(bool, DefinePrintNode), String>{
     let mut parser = parser;
     let mut node = DefinePrintNode::new();
 

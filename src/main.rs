@@ -4,6 +4,7 @@ mod file;
 mod tokens;
 mod lexer;
 mod syntax_tree;
+mod parser;
 mod environments;
 
 mod compiler;

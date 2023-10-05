@@ -1,4 +1,3 @@
-mod parser;
 mod symantic_analyzer;
 mod executes;
 
@@ -8,7 +7,10 @@ use std::env;
 use crate::constants::Mode;
 use crate::file::File;
 use crate::lexer::Lexer;
-use parser::Parser;
+use crate::parser::{
+    Parser,
+    statement
+};
 use symantic_analyzer::Analyzer;
 use crate::interpreter::executes::execute_statement;
 
@@ -34,17 +36,12 @@ pub fn interpret() -> Result<(), String>{
             &args[1]);
     }
 
-    let mut parser = Parser::new(lexer.unwrap());
-    if parser.is_err(){
-        panic!(
-            "Engine Interpreter -> Parser Error: Failed in reading file character `{}`.",
-            &args[1]);
-    }
+    let mut parser = Parser::new(lexer.unwrap(), Mode::Interpreter)?;
 
     let mut analyzer = Analyzer::new();
 
     loop {
-        let result = parser.as_mut().unwrap().parse_statement(true)?;
+        let result = statement(&mut parser, true)?;
         let node = result.1;
         if result.0{
             break;

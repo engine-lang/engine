@@ -1,4 +1,3 @@
-mod parser;
 mod symantic_analyzer;
 mod code_generator;
 mod byte_code_generator;
@@ -11,7 +10,10 @@ use crate::constants::Mode;
 
 use crate::file::File;
 use crate::lexer::Lexer;
-use parser::Parser;
+use crate::parser::{
+    Parser,
+    parse
+};
 use symantic_analyzer::{Analyzer, analyze};
 use code_generator::CodeGenerator;
 use byte_code_generator::ByteCodeGenerator;
@@ -51,14 +53,14 @@ pub fn compile(generate_byte_code: bool) -> Result<(), String>{
         &args[1],
         current_mode.clone()
     );
-    let lexer = Lexer::new(file, current_mode);
+    let lexer = Lexer::new(file, current_mode.clone());
     if lexer.is_err(){
         panic!("{}", lexer.unwrap_err());
     }
 
-    let mut parser = Parser::new(lexer.unwrap())?;
+    let mut parser = Parser::new(lexer.unwrap(), current_mode)?;
 
-    let syntax_tree = parser.parse()?;
+    let syntax_tree = parse(&mut parser)?;
 
     let mut analyzer = Analyzer::new();
     analyze(&mut analyzer, syntax_tree.clone())?;

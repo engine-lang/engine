@@ -1,4 +1,3 @@
-mod lexer;
 mod parser;
 mod symantic_analyzer;
 mod executes;
@@ -8,7 +7,7 @@ use std::env;
 
 use crate::constants::Mode;
 use crate::file::File;
-use lexer::Lexer;
+use crate::lexer::Lexer;
 use parser::Parser;
 use symantic_analyzer::Analyzer;
 use crate::interpreter::executes::execute_statement;
@@ -28,7 +27,7 @@ pub fn interpret() -> Result<(), String>{
     }));
 
     let file = File::new(&args[1], Mode::Interpreter);
-    let lexer = Lexer::new(file);
+    let lexer = Lexer::new(file, Mode::Interpreter);
     if lexer.is_err(){
         panic!(
             "Engine Interpreter -> File Error: Failed in reading file character `{}`.",

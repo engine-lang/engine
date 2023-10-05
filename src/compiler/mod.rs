@@ -1,4 +1,3 @@
-mod lexer;
 mod parser;
 mod symantic_analyzer;
 mod code_generator;
@@ -11,7 +10,7 @@ use std::env;
 use crate::constants::Mode;
 
 use crate::file::File;
-use lexer::Lexer;
+use crate::lexer::Lexer;
 use parser::Parser;
 use symantic_analyzer::{Analyzer, analyze};
 use code_generator::CodeGenerator;
@@ -46,11 +45,13 @@ pub fn compile(generate_byte_code: bool) -> Result<(), String>{
 
     let file_name_without_ext = ext_arr.join(".");
 
+    let current_mode = if generate_byte_code {Mode::ByteCodeGenerator} else {Mode::Compiler};
+
     let file = File::new(
         &args[1],
-        if generate_byte_code {Mode::ByteCodeGenerator} else {Mode::Compiler}
+        current_mode.clone()
     );
-    let lexer = Lexer::new(file);
+    let lexer = Lexer::new(file, current_mode);
     if lexer.is_err(){
         panic!("{}", lexer.unwrap_err());
     }

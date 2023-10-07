@@ -1,4 +1,4 @@
-use std::collections::VecDeque;
+use std::collections::{VecDeque, HashMap};
 
 use crate::tokens::{
     Token,
@@ -21,6 +21,8 @@ pub enum StatementType{
     Print,
 
     DefineIf,
+
+    DefineForLoop,
 }
 
 
@@ -263,6 +265,39 @@ impl DefineIfStatementNode{
 
 
 #[derive(Debug, Clone, PartialEq)]
+pub struct DefineForLoopStatementNode{
+    pub variable: Option<Token>,
+
+    pub start: Option<OperationNode>,
+    pub stop: Option<OperationNode>,
+    pub step: Option<OperationNode>,
+
+    pub statements: StatementsNode,
+
+    pub meta: HashMap<String, Option<Token>>,
+}
+impl DefineForLoopStatementNode{
+    pub fn new() -> Self{
+        return DefineForLoopStatementNode{
+            variable: None,
+
+            start: None,
+            stop: None,
+            step: None,
+
+            statements: StatementsNode::new(),
+
+            meta: HashMap::from([
+                (String::from("start-token"), None),
+                (String::from("stop-token"), None),
+                (String::from("step-token"), None),
+            ])
+        };
+    }
+}
+
+
+#[derive(Debug, Clone, PartialEq)]
 pub struct StatementNode{
     pub statement_type: Option<StatementType>,
 
@@ -277,6 +312,8 @@ pub struct StatementNode{
     pub define_print_statement: Option<DefinePrintNode>,
 
     pub define_if_statement: Option<DefineIfStatementNode>,
+
+    pub define_for_loop_statement: Option<DefineForLoopStatementNode>
 }
 
 impl StatementNode{
@@ -294,7 +331,9 @@ impl StatementNode{
 
             define_print_statement: None,
 
-            define_if_statement: None
+            define_if_statement: None,
+
+            define_for_loop_statement: None
         };
     }
 }

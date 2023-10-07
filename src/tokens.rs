@@ -58,6 +58,10 @@ pub enum TokenType{
     If,
     Else,
 
+    For,
+    Comma,
+    In,
+
     BadToken,
 }
 
@@ -114,6 +118,13 @@ pub fn get_token_type(variable: &String) -> TokenType{
     }
     else if variable == "else" {
         return TokenType::Else
+    }
+
+    else if variable == "for" {
+        return TokenType::For
+    }
+    else if variable == "in" {
+        return TokenType::In
     }
 
     return TokenType::Variable;

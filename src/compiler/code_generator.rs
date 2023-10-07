@@ -23,7 +23,8 @@ use crate::syntax_tree::{
     DefinePrintNode,
     DefineVarNode,
     DefineVariableNode,
-    DefineIfStatementNode
+    DefineIfStatementNode,
+    DefineForLoopStatementNode
 };
 use crate::tokens::TokenType;
 use crate::constants::Mode;
@@ -186,13 +187,20 @@ impl CodeGenerator{
             self.generate_define_variable(
                 &statement.define_variable_statement.as_ref().unwrap())?;
         }
+
         else if statement.statement_type == Some(StatementType::Print){
             self.generate_define_print_variable(
                 &statement.define_print_statement.as_ref().unwrap())?;
         }
+
         else if statement.statement_type == Some(StatementType::DefineIf){
             self.generate_define_if_statement(
                 &mut statement.define_if_statement.as_mut().unwrap())?;
+        }
+
+        else if statement.statement_type == Some(StatementType::DefineForLoop){
+            self.generate_define_for_loop_statement(
+                &mut statement.define_for_loop_statement.as_mut().unwrap())?;
         }
 
         return Ok(());
@@ -593,6 +601,124 @@ impl CodeGenerator{
                 self.environments_stack.pop_back();
             }
         }
+
+        return Ok(());
+    }
+
+    fn generate_define_for_loop_statement(
+        &mut self, statement: &mut DefineForLoopStatementNode
+    ) -> Result<(), String>{
+
+        self.file.writeln(String::from("{"));
+
+        let start_loop_variable_name: String;
+        let mut stop_loop_variable_name: String = String::from("");
+        let mut step_loop_variable_name: String = String::from("");
+
+        /* Generate Loop Conditions */
+        {
+            if statement.start != None{
+                let result = self.define_operation_node_variables(
+                    statement.start.as_ref().unwrap())?;
+
+                start_loop_variable_name = format!(
+                    "temp{}", self.generate_variable_name().clone());
+
+                self.file.writeln(format!(
+                    "let mut {}: i64 = {} as i64;",
+                    start_loop_variable_name, result.0));
+            }
+            else{
+                start_loop_variable_name = format!(
+                    "temp{}", self.generate_variable_name().clone());
+
+                self.file.writeln(format!(
+                    "let mut {}: i64 = 0;", start_loop_variable_name));
+            }
+
+            if statement.stop != None{
+                let result = self.define_operation_node_variables(
+                    statement.stop.as_ref().unwrap())?;
+
+                stop_loop_variable_name = format!(
+                    "temp{}", self.generate_variable_name().clone());
+
+                self.file.writeln(format!(
+                    "let mut {}: i64 = {} as i64;",
+                    stop_loop_variable_name, result.0));
+            }
+
+            if statement.step != None{
+                let result = self.define_operation_node_variables(
+                    statement.step.as_ref().unwrap())?;
+
+                step_loop_variable_name = format!(
+                    "temp{}", self.generate_variable_name().clone());
+
+                self.file.writeln(format!(
+                    "let mut {}: i64 = {} as i64;",
+                    step_loop_variable_name, result.0));
+            }
+        }
+
+        /* Generate Loop */
+        {
+            self.file.writeln(String::from("loop{"));
+
+            /* Before Execute Statements */
+            {
+                if statement.stop != None{
+                    self.file.writeln(format!(
+                        "if {} >= {} {{ break; }}",
+                        start_loop_variable_name, stop_loop_variable_name));
+                }
+            }
+
+            /* Start Execute Loop Statements */
+            {
+                self.environments_stack.push_back(Environment {
+                    scope: EnvironmentScope::ForLoop,
+                    variables: HashMap::new()
+                });
+
+                if statement.variable != None{
+                    self.file.writeln(format!(
+                        "let mut variable_{}: i64 = {} as i64;",
+                        statement.variable.as_ref().unwrap().value,
+                        start_loop_variable_name));
+                }
+
+                self.insert_variable_into_environments_stack(
+                    statement.variable.as_ref().unwrap().value.clone(),
+                    Variable {
+                        variable_type: Some(TokenType::Int),
+                        name: Some(statement.variable.as_ref().unwrap().value.clone()),
+                        value: None,
+                        is_reasigned: false
+                    });
+
+                self.generate_statements_node(&mut statement.statements)?;
+
+                self.environments_stack.pop_back();
+            }
+
+            /* Before Closing Loop */
+            {
+                if statement.step != None{
+                    self.file.writeln(format!(
+                        "{} += {};", start_loop_variable_name,
+                        step_loop_variable_name));
+                }
+                else{
+                    self.file.writeln(format!(
+                        "{} += 1;", start_loop_variable_name));
+                }
+            }
+
+            self.file.writeln(String::from("}"));
+        }
+
+        self.file.writeln(String::from("}"));
 
         return Ok(());
     }

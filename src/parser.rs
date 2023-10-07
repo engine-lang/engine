@@ -28,6 +28,7 @@ use crate::syntax_tree::{
     DefineElseNode,
     DefineIfElseNode,
     DefineIfNode,
+    DefineForLoopStatementNode,
 };
 
 
@@ -135,6 +136,14 @@ pub fn statement(
 
         let result = define_if_statement(&mut parser)?;
         node.define_if_statement = Some(result.1);
+
+        return Ok((result.0, node));
+    }
+    else if parser.current_token.token_type == TokenType::For{
+        node.statement_type = Some(StatementType::DefineForLoop);
+
+        let result = define_for_loop_statement(&mut parser)?;
+        node.define_for_loop_statement = Some(result.1);
 
         return Ok((result.0, node));
     }
@@ -942,4 +951,179 @@ fn define_if_statement(
     }
 
     return Ok((false, define_if_statement_node));
+}
+
+
+fn define_for_loop_statement(
+    parser: &mut Parser
+) -> Result<(bool, DefineForLoopStatementNode), String>{
+
+    let mut parser = parser;
+    let mut for_loop_node = DefineForLoopStatementNode::new();
+
+    _move(&mut parser)?;
+
+    /* Define Looping Conditions */
+    {
+        /* Match Variable */
+        bypass(&mut parser, vec![
+            TokenType::Space,
+            TokenType::MultiLineComment,
+        ])?;
+        _match(&mut parser, vec![
+            TokenType::Variable
+        ])?;
+        for_loop_node.variable = Some(parser.current_token.clone());
+        _move(&mut parser)?;
+
+        /* Match In */
+        bypass(&mut parser, vec![
+            TokenType::Space,
+            TokenType::MultiLineComment,
+        ])?;
+        _match(&mut parser, vec![
+            TokenType::In
+        ])?;
+        _move(&mut parser)?;
+
+        /* Match Open Pranthese */
+        bypass(&mut parser, vec![
+            TokenType::Space,
+            TokenType::MultiLineComment,
+        ])?;
+        _match(&mut parser, vec![
+            TokenType::OpenParenthes
+        ])?;
+        _move(&mut parser)?;
+
+        /* Match Expression */
+        bypass(&mut parser, vec![
+            TokenType::Space,
+            TokenType::SingleLineComment,
+            TokenType::MultiLineComment,
+            TokenType::NewLine
+        ])?;
+        if !_is_matched_with(&mut parser, vec![
+            TokenType::Comma
+        ]){
+            for_loop_node.meta.insert(
+                String::from("start-token"),
+                Some(parser.current_token.clone()));
+
+            let mut tokens_array: VecDeque<Token> = VecDeque::new();
+            match_expression(&mut parser, false, &mut tokens_array)?;
+            for_loop_node.start = Some(construct_expression_node(&mut tokens_array));
+        }
+
+        /* Match Comma */
+        bypass(&mut parser, vec![
+            TokenType::Space,
+            TokenType::SingleLineComment,
+            TokenType::MultiLineComment,
+            TokenType::NewLine
+        ])?;
+        _match(&mut parser, vec![
+            TokenType::Comma
+        ])?;
+        _move(&mut parser)?;
+
+        /* Match Expression */
+        bypass(&mut parser, vec![
+            TokenType::Space,
+            TokenType::SingleLineComment,
+            TokenType::MultiLineComment,
+            TokenType::NewLine
+        ])?;
+        if !_is_matched_with(&mut parser, vec![
+            TokenType::Comma
+        ]){
+            for_loop_node.meta.insert(
+                String::from("stop-token"),
+                Some(parser.current_token.clone()));
+
+            let mut tokens_array: VecDeque<Token> = VecDeque::new();
+            match_expression(&mut parser, false, &mut tokens_array)?;
+            for_loop_node.stop = Some(construct_expression_node(&mut tokens_array));
+        }
+
+        /* Match Comma */
+        bypass(&mut parser, vec![
+            TokenType::Space,
+            TokenType::SingleLineComment,
+            TokenType::MultiLineComment,
+            TokenType::NewLine
+        ])?;
+        _match(&mut parser, vec![
+            TokenType::Comma
+        ])?;
+        _move(&mut parser)?;
+
+        /* Match Expression */
+        bypass(&mut parser, vec![
+            TokenType::Space,
+            TokenType::SingleLineComment,
+            TokenType::MultiLineComment,
+            TokenType::NewLine
+        ])?;
+        if !_is_matched_with(&mut parser, vec![
+            TokenType::CloseParenthes
+        ]){
+            for_loop_node.meta.insert(
+                String::from("step-token"),
+                Some(parser.current_token.clone()));
+
+            let mut tokens_array: VecDeque<Token> = VecDeque::new();
+            match_expression(&mut parser, false, &mut tokens_array)?;
+            for_loop_node.step = Some(construct_expression_node(&mut tokens_array));
+        }
+
+        /* Match Close Pranthese */
+        bypass(&mut parser, vec![
+            TokenType::Space,
+            TokenType::SingleLineComment,
+            TokenType::MultiLineComment,
+            TokenType::NewLine,
+        ])?;
+        _match(&mut parser, vec![
+            TokenType::CloseParenthes
+        ])?;
+        _move(&mut parser)?;
+    }
+
+    /* Match Open Bracket */
+    bypass(&mut parser, vec![
+        TokenType::Space,
+        TokenType::MultiLineComment,
+    ])?;
+    _match(&mut parser, vec![
+        TokenType::OpenBracket
+    ])?;
+    _move(&mut parser)?;
+
+    /* Define Statements */
+    for_loop_node.statements = statements(&mut parser, false)?;
+
+    /* Match Close Bracket */
+    bypass(&mut parser, vec![
+        TokenType::Space,
+        TokenType::SingleLineComment,
+        TokenType::MultiLineComment,
+    ])?;
+    _match(&mut parser, vec![
+        TokenType::CloseBracket
+    ])?;
+    _move(&mut parser)?;
+
+    /* Match New Line */
+    bypass(&mut parser, vec![
+        TokenType::Space,
+        TokenType::SingleLineComment,
+        TokenType::MultiLineComment,
+    ])?;
+    _match(&mut parser, vec![
+        TokenType::NewLine
+    ])?;
+    _move(&mut parser)?;
+
+    return Ok((false, for_loop_node));
 }

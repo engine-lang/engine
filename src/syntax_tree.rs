@@ -1,4 +1,7 @@
-use std::collections::{VecDeque, HashMap};
+use std::collections::{
+    VecDeque,
+    HashMap
+};
 
 use crate::tokens::{
     Token,

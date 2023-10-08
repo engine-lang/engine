@@ -23,7 +23,7 @@ use crate::syntax_tree::{
     StatementNode,
     StatementType,
     DefineIfStatementNode,
-    StatementsNode
+    StatementsNode, DefineForLoopStatementNode
 };
 use crate::interpreter::symantic_analyzer::{
     analyze_define_bool,
@@ -35,6 +35,7 @@ use crate::interpreter::symantic_analyzer::{
     analyze_define_variable,
     analyze_define_print,
     analyze_if_condition,
+    analyze_for_loop_conditions,
     is_variable_exists,
     get_variable,
     insert_variable_into_current_environmment
@@ -96,6 +97,7 @@ pub fn execute_statement(
         define_variable(
             &mut analyzer, node.define_variable_statement.as_ref().unwrap().clone())?;
     }
+
     else if node.statement_type.as_ref().unwrap() == &StatementType::Print{
         analyze_define_print(
             &mut analyzer, node.define_print_statement.as_ref().unwrap().clone())?;
@@ -103,9 +105,15 @@ pub fn execute_statement(
         define_print(
             &mut analyzer, node.define_print_statement.as_ref().unwrap().clone())?;
     }
+
     else if node.statement_type == Some(StatementType::DefineIf){
         execute_define_if_statement(
             &mut analyzer, node.define_if_statement.as_ref().unwrap())?;
+    }
+
+    else if node.statement_type == Some(StatementType::DefineForLoop){
+        execute_define_for_loop_statement(
+            &mut analyzer, node.define_for_loop_statement.as_ref().unwrap())?;
     }
 
     return Ok(());
@@ -564,6 +572,109 @@ fn execute_define_if_statement(
                 &mut analyzer, &define_else_node.statements)?;
 
             analyzer.environments_stack.pop_front();
+        }
+    }
+
+    return Ok(());
+}
+
+
+fn execute_define_for_loop_statement(
+    analyzer: &mut Analyzer,
+    statement: &DefineForLoopStatementNode
+) -> Result<(), String>{
+
+    let mut analyzer = analyzer;
+
+    let mut start_node: Value;
+    let mut stop_node: Option<Value> = None;
+    let mut step_node: Option<Value> = None;
+
+    /* Analyze And Execute Loop Conditions */
+    {
+        analyze_for_loop_conditions(&analyzer, statement)?;
+
+        if statement.start != None{
+            let node_value = execute_operation_node(
+                &analyzer, statement.start.as_ref().unwrap())?;
+
+            start_node = node_value;
+        }
+        else{
+            start_node = Value{
+                value_type: Some(ValueType::Integer),
+                boolean: None,
+                character: None,
+                double: None,
+                string: None,
+                string_value: None,
+                int: Some(0)
+            };
+        }
+
+        if statement.stop != None{
+            let node_value = execute_operation_node(
+                &analyzer, statement.stop.as_ref().unwrap())?;
+
+            stop_node = Some(node_value);
+        }
+
+        if statement.step != None{
+            let node_value = execute_operation_node(
+                &analyzer, statement.step.as_ref().unwrap())?;
+
+            step_node = Some(node_value);
+        }
+    }
+
+    loop{
+        /* Before Executing Loop */
+        if stop_node != None{
+            if start_node.int.as_ref().unwrap() >=
+                stop_node.as_ref().unwrap().int.as_ref().unwrap()
+            {
+                break;
+            }
+        }
+
+        /* Execute Statements */
+        analyzer.environments_stack.push_front(Environment {
+            scope: EnvironmentScope::ForLoop,
+            variables: HashMap::new()
+        });
+
+        /* Add Variable */
+        {
+            let mut variable = Variable::new();
+
+            variable.name = Some(statement.variable.as_ref().unwrap().value.clone());
+            variable.variable_type = Some(TokenType::Int);
+            variable.value = Some(Value{
+                value_type: Some(ValueType::Integer),
+                boolean: None,
+                character: None,
+                double: None,
+                string: None,
+                string_value: None,
+                int: start_node.int.clone()
+            });
+
+            insert_variable_into_current_environmment(&mut analyzer, variable);
+        }
+
+        execute_statements(&mut analyzer, &statement.statements)?;
+
+        analyzer.environments_stack.pop_front();
+
+        /* Before Closing Loop */
+        if step_node != None{
+            start_node.int = Some(
+                start_node.int.as_ref().unwrap() +
+                step_node.as_ref().unwrap().int.as_ref().unwrap()
+            )
+        }
+        else{
+            start_node.int = Some(start_node.int.as_ref().unwrap() + 1)
         }
     }
 

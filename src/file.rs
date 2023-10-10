@@ -279,6 +279,18 @@ impl File{
             self.mode).as_str());
     }
 
+    pub fn get_reader_stream_position(&mut self) -> u64{
+        return self.reader.as_mut().unwrap().stream_position().expect(format!(
+            "{}: File Error -> Failed to get stream position.",
+            self.mode).as_str());
+    }
+
+    pub fn set_reader_stream_position(&mut self, stream_position: u64){
+        self.reader.as_mut().unwrap().seek(SeekFrom::Start(stream_position)).expect(format!(
+            "{}: File Error -> Failed to set stream position.",
+            self.mode).as_str());
+    }
+
     pub fn rewrite_line(&mut self, stream_position: u64, data: String){
         self.file.seek(SeekFrom::Start(stream_position)).expect(format!(
             "{}: File Error -> Failed to set stream position.",

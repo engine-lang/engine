@@ -520,6 +520,15 @@ pub fn next_token(lexer: &mut Lexer) -> Result<Token, String>{
         }
     }
 
+    else if current(&mut lexer).to_string() == ","{
+        return Ok(Token{
+            token_type: TokenType::Comma,
+            start_line: lexer.current_line,
+            start_pos: lexer.current_pos,
+            value: next(&mut lexer)
+        })
+    }
+
     else if !current(&mut lexer).is_ascii(){
         return Err(format!(
             "{}: Syntax Error -> {}, line {}:{}.",

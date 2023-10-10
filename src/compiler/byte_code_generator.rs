@@ -4,6 +4,15 @@ use std::collections::{
 };
 
 use crate::file::File;
+use crate::constants::Mode;
+use crate::tokens::TokenType;
+use crate::constants::VERSION;
+use crate::constants::BYTECODE_SPACE_STRING_LENGTH;
+use crate::environments::{
+    Environment,
+    EnvironmentScope,
+    Variable
+};
 use crate::syntax_tree::{
     StatementsNode,
     StatementNode,
@@ -18,16 +27,8 @@ use crate::syntax_tree::{
     DefinePrintNode,
     DefineVarNode,
     DefineVariableNode,
-    DefineIfStatementNode
-};
-use crate::constants::Mode;
-use crate::tokens::TokenType;
-use crate::constants::VERSION;
-use crate::constants::compiler::BYTECODE_SPACE_STRING_LENGTH;
-use crate::environments::{
-    Environment,
-    EnvironmentScope,
-    Variable
+    DefineIfStatementNode,
+    DefineForLoopStatementNode
 };
 
 
@@ -206,13 +207,20 @@ impl ByteCodeGenerator{
             self.generate_define_variable(
                 &statement.define_variable_statement.as_ref().unwrap())?;
         }
+
         else if statement.statement_type == Some(StatementType::Print){
             self.generate_define_print_variable(
                 &statement.define_print_statement.as_ref().unwrap())?;
         }
+
         else if statement.statement_type == Some(StatementType::DefineIf){
             self.generate_if_statement(
                 &mut statement.define_if_statement.as_mut().unwrap())?;
+        }
+
+        else if statement.statement_type == Some(StatementType::DefineForLoop){
+            self.generate_for_loop_statement(
+                &mut statement.define_for_loop_statement.as_mut().unwrap())?;
         }
 
         return Ok(());
@@ -1113,6 +1121,236 @@ impl ByteCodeGenerator{
             for (line, stream_position) in lines_to_be_edited{
                 self.file.rewrite_line(
                     stream_position, format!("{line}:GoTo:{current_instruction_line}"));
+            }
+        }
+
+        return Ok(());
+    }
+
+    fn generate_for_loop_statement(
+        &mut self, statement: &mut DefineForLoopStatementNode
+    ) -> Result<(), String>{
+
+        let start_loop_variable_name: String;
+        let mut stop_loop_variable_name: String = String::from("");
+        let mut step_loop_variable_name: String = String::from("");
+
+        /* Generate loop conditions instructions */
+        {
+            if statement.start != None{
+                let result = self.define_operation_node_variables(
+                    statement.start.as_ref().unwrap())?;
+
+                start_loop_variable_name = self.generate_temp_variable_name();
+
+                /* Define Start Variable */
+                {
+                    let current_line = self.get_current_line();
+                    self.file.writeln(format!(
+                        "{current_line}:Assign:int:\"{start_loop_variable_name}\":0"));
+                }
+
+                /* Convert Result To Variable */
+                {
+                    let current_line = self.get_current_line();
+                    self.file.writeln(format!(
+                        "{}:Convert:int:\"{}\":\"{}\"",
+                        current_line, start_loop_variable_name, result.0));
+                }
+            }
+            else{
+                start_loop_variable_name = self.generate_temp_variable_name();
+
+                /* Define Start Variable */
+                {
+                    let current_line = self.get_current_line();
+                    self.file.writeln(format!(
+                        "{current_line}:Assign:int:\"{start_loop_variable_name}\":0"));
+                }
+            }
+
+            if statement.stop != None{
+                let result = self.define_operation_node_variables(
+                    statement.stop.as_ref().unwrap())?;
+
+                stop_loop_variable_name = self.generate_temp_variable_name();
+
+                /* Define Stop Variable */
+                {
+                    let current_line = self.get_current_line();
+                    self.file.writeln(format!(
+                        "{current_line}:Assign:int:\"{stop_loop_variable_name}\":0"));
+                }
+
+                /* Convert Result To Variable */
+                {
+                    let current_line = self.get_current_line();
+                    self.file.writeln(format!(
+                        "{}:Convert:int:\"{}\":\"{}\"",
+                        current_line, stop_loop_variable_name, result.0));
+                }
+            }
+
+            if statement.step != None{
+                let result = self.define_operation_node_variables(
+                    statement.step.as_ref().unwrap())?;
+
+                step_loop_variable_name = self.generate_temp_variable_name();
+
+                /* Define Stop Variable */
+                {
+                    let current_line = self.get_current_line();
+                    self.file.writeln(format!(
+                        "{current_line}:Assign:int:\"{step_loop_variable_name}\":0"));
+                }
+
+                /* Convert Result To Variable */
+                {
+                    let current_line = self.get_current_line();
+                    self.file.writeln(format!(
+                        "{}:Convert:int:\"{}\":\"{}\"",
+                        current_line, step_loop_variable_name, result.0));
+                }
+            }
+        }
+
+        /* Generate loop */
+        {
+            let mut start_loop_instruction_line: u128 = 0;
+            let mut break_loop_instruction_line: (u128, u64, String) = (
+                0, 0, String::from(""));
+
+            /* Before Excecute Loop */
+            {
+                if statement.stop != None{
+
+                    let temp_compare_variable = self.generate_temp_variable_name();
+
+                    /* Define Stop Variable */
+                    {
+                        start_loop_instruction_line = self.get_current_line();
+                        self.file.writeln(format!(
+                            "{start_loop_instruction_line}:Assign:bool:\"{temp_compare_variable}\":False"));
+                    }
+
+                    /* Compare Condition */
+                    {
+                        let current_line = self.get_current_line();
+                        self.file.writeln(format!(
+                            "{}:Operation:{:?}:\"{}\":\"{}\":\"{}\"",
+                            current_line, TokenType::LessThan,
+                            temp_compare_variable,
+                            start_loop_variable_name, stop_loop_variable_name));
+                    }
+
+                    /* Break Condition */
+                    {
+                        let space_line = self.append_empty_lines(String::from("0"));
+                        let current_stream = self.file.get_stream_position();
+
+                        let current_line = self.get_current_line();
+                        self.file.writeln(format!(
+                            "{}:If:\"{}\":{}",
+                            current_line,
+                            temp_compare_variable, space_line));
+
+                        break_loop_instruction_line = (
+                            current_line, current_stream,
+                            temp_compare_variable);
+                    }
+                }
+            }
+
+            /* Start Execute Loop Statements */
+            {
+                self.environments_stack.push_back(Environment {
+                    scope: EnvironmentScope::ForLoop,
+                    variables: HashMap::new()
+                });
+
+                self.insert_variable_into_environments_stack(
+                    statement.variable.as_ref().unwrap().value.clone(),
+                    Variable {
+                        variable_type: Some(TokenType::Int),
+                        name: Some(statement.variable.as_ref().unwrap().value.clone()),
+                        value: None,
+                        is_reasigned: false
+                    });
+
+                /* Define Variable */
+                let variable_name = self.generate_variable_name(
+                    &statement.variable.as_ref().unwrap().value)?;
+
+                /* Define Variable */
+                {
+                    let current_line = self.get_current_line();
+                    self.file.writeln(format!(
+                        "{current_line}:Assign:int:\"{variable_name}\":0"));
+                }
+
+                /* Assign Value To Variable */
+                {
+                    let current_line = self.get_current_line();
+                    self.file.writeln(format!(
+                        "{}:Convert:int:\"{}\":\"{}\"",
+                        current_line, variable_name, start_loop_variable_name));
+                }
+
+                self.generate_statements_node(&mut statement.statements)?;
+
+                self.environments_stack.pop_back();
+            }
+
+            /* Before Closing Loop */
+            {
+                if statement.step != None{
+
+                    let current_line = self.get_current_line();
+                    self.file.writeln(format!(
+                        "{}:Operation:{:?}:\"{}\":\"{}\":\"{}\"",
+                        current_line, TokenType::Plus,
+                        start_loop_variable_name,
+                        start_loop_variable_name, step_loop_variable_name));
+                }
+                else{
+                    let temp_step_variable = self.generate_temp_variable_name();
+
+                    /* Define Temp Variable */
+                    {
+                        let current_line = self.get_current_line();
+                        self.file.writeln(format!(
+                            "{current_line}:Assign:int:\"{temp_step_variable}\":1"));
+                    }
+
+                    /* Add Operation */
+                    let current_line = self.get_current_line();
+                    self.file.writeln(format!(
+                        "{}:Operation:{:?}:\"{}\":\"{}\":\"{}\"",
+                        current_line, TokenType::Plus,
+                        start_loop_variable_name,
+                        start_loop_variable_name, temp_step_variable));
+                }
+
+                /* Go To Start Loop */
+                {
+                    let current_line = self.get_current_line();
+                    self.file.writeln(format!(
+                        "{current_line}:GoTo:{start_loop_instruction_line}"));
+                }
+
+                /* Re-Write If Condition */
+                if statement.stop != None{
+                    let current_instruction_line = self.append_empty_lines(
+                        format!("{}", self.current_instruction_line + 1));
+
+                    self.file.rewrite_line(
+                        break_loop_instruction_line.1,
+                        format!(
+                            "{}:If:\"{}\":{}",
+                            break_loop_instruction_line.0,
+                            break_loop_instruction_line.2,
+                            current_instruction_line));
+                }
             }
         }
 

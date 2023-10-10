@@ -7,6 +7,7 @@ use crate::tokens::TokenType;
 pub enum EnvironmentScope{
     Main,
     If,
+    ForLoop,
 }
 
 

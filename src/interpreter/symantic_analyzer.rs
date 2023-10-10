@@ -27,6 +27,7 @@ use crate::syntax_tree::{
     DefinePrintNode,
     OperationNode,
     OperatorType,
+    DefineForLoopStatementNode,
 };
 
 
@@ -343,6 +344,66 @@ pub fn analyze_if_condition(
             format!("If condition must be of type `bool` found `{:?}`", node_type),
             if_token.start_line,
             if_token.start_pos));
+    }
+
+    return Ok(());
+}
+
+
+pub fn analyze_for_loop_conditions(
+    analyzer: &Analyzer,
+    statement: &DefineForLoopStatementNode
+) -> Result<(), String>{
+
+    if statement.start != None{
+        let node_type = analyze_operation_node(
+            &analyzer, statement.start.as_ref().unwrap())?;
+
+        if node_type != TokenType::IntNumber{
+            let start_token = statement.meta.get("start-token").as_ref().unwrap().as_ref().unwrap();
+
+            return Err(format!(
+                "Engine Interpreter: Analyze Error -> {}, line {}:{}.",
+                format!(
+                    "Start expression must be of type `Int` Found `{:?}`",
+                    start_token.token_type),
+                start_token.start_line,
+                start_token.start_pos));
+        }
+    }
+
+    if statement.stop != None{
+        let node_type = analyze_operation_node(
+            &analyzer, statement.stop.as_ref().unwrap())?;
+
+        if node_type != TokenType::IntNumber{
+            let stop_token = statement.meta.get("stop-token").as_ref().unwrap().as_ref().unwrap();
+
+            return Err(format!(
+                "Engine Interpreter: Analyze Error -> {}, line {}:{}.",
+                format!(
+                    "Stop expression must be of type `Int` Found `{:?}`",
+                    stop_token.token_type),
+                stop_token.start_line,
+                stop_token.start_pos));
+        }
+    }
+
+    if statement.step != None{
+        let node_type = analyze_operation_node(
+            &analyzer, statement.step.as_ref().unwrap())?;
+
+        if node_type != TokenType::IntNumber{
+            let step_token = statement.meta.get("step-token").as_ref().unwrap().as_ref().unwrap();
+
+            return Err(format!(
+                "Engine Interpreter: Analyze Error -> {}, line {}:{}.",
+                format!(
+                    "Step expression must be of type `Int` Found `{:?}`",
+                    step_token.token_type),
+                step_token.start_line,
+                step_token.start_pos));
+        }
     }
 
     return Ok(());

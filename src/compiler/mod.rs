@@ -14,8 +14,14 @@ use crate::parser::{
     Parser,
     parse
 };
-use symantic_analyzer::{Analyzer, analyze};
-use code_generator::CodeGenerator;
+use symantic_analyzer::{
+    Analyzer,
+    analyze
+};
+use code_generator::{
+    CodeGenerator,
+    generate,
+};
 use byte_code_generator::ByteCodeGenerator;
 
 
@@ -85,7 +91,7 @@ pub fn compile(generate_byte_code: bool) -> Result<(), String>{
             panic!("{}", code_generator.unwrap_err());
         }
 
-        code_generator.as_mut().unwrap().generate()?;
+        generate(code_generator.as_mut().unwrap())?;
         code_generator.as_mut().unwrap().execute()?;
         code_generator.as_mut().unwrap().clean()?;
     }

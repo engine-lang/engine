@@ -22,7 +22,10 @@ use code_generator::{
     CodeGenerator,
     generate,
 };
-use byte_code_generator::ByteCodeGenerator;
+use byte_code_generator::{
+    ByteCodeGenerator,
+    generate_byte_code as start_generate_byte_code
+};
 
 
 pub fn compile(generate_byte_code: bool) -> Result<(), String>{
@@ -80,7 +83,7 @@ pub fn compile(generate_byte_code: bool) -> Result<(), String>{
             panic!("{}", byte_code_generator.unwrap_err());
         }
 
-        byte_code_generator.as_mut().unwrap().generate()?;
+        start_generate_byte_code(byte_code_generator.as_mut().unwrap())?;
     }
     else{
         let mut code_generator = CodeGenerator::new(

@@ -506,7 +506,8 @@ fn execute_define_if_statement(
     {
         analyzer.environments_stack.push_front(Environment {
             scope: EnvironmentScope::If,
-            variables: HashMap::new()
+            variables: HashMap::new(),
+            internal_variables: HashMap::new(),
         });
 
         let define_if_node = statement.define_if_node.as_ref().unwrap();
@@ -537,7 +538,8 @@ fn execute_define_if_statement(
 
             analyzer.environments_stack.push_front(Environment {
                 scope: EnvironmentScope::If,
-                variables: HashMap::new()
+                variables: HashMap::new(),
+                internal_variables: HashMap::new(),
             });
 
             analyze_if_condition(
@@ -563,7 +565,8 @@ fn execute_define_if_statement(
         if statement.define_else_node != None && !is_if_executed{
             analyzer.environments_stack.push_front(Environment {
                 scope: EnvironmentScope::If,
-                variables: HashMap::new()
+                variables: HashMap::new(),
+                internal_variables: HashMap::new(),
             });
 
             let define_else_node = statement.define_else_node.as_ref().unwrap();
@@ -640,7 +643,8 @@ fn execute_define_for_loop_statement(
         /* Execute Statements */
         analyzer.environments_stack.push_front(Environment {
             scope: EnvironmentScope::ForLoop,
-            variables: HashMap::new()
+            variables: HashMap::new(),
+            internal_variables: HashMap::new(),
         });
 
         /* Add Variable */

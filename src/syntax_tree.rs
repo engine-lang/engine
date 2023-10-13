@@ -26,6 +26,7 @@ pub enum StatementType{
     DefineIf,
 
     DefineForLoop,
+    Continue,
 }
 
 
@@ -301,6 +302,21 @@ impl DefineForLoopStatementNode{
 
 
 #[derive(Debug, Clone, PartialEq)]
+pub struct DefineContinueStatementNode{
+    pub meta: HashMap<String, Option<Token>>,
+}
+impl DefineContinueStatementNode {
+    pub fn new() -> Self{
+        return DefineContinueStatementNode{
+            meta: HashMap::from([
+                (String::from("continue-token"), None)
+            ])
+        };
+    }
+}
+
+
+#[derive(Debug, Clone, PartialEq)]
 pub struct StatementNode{
     pub statement_type: Option<StatementType>,
 
@@ -316,7 +332,8 @@ pub struct StatementNode{
 
     pub define_if_statement: Option<DefineIfStatementNode>,
 
-    pub define_for_loop_statement: Option<DefineForLoopStatementNode>
+    pub define_for_loop_statement: Option<DefineForLoopStatementNode>,
+    pub define_continue_statement: Option<DefineContinueStatementNode>,
 }
 
 impl StatementNode{
@@ -336,7 +353,8 @@ impl StatementNode{
 
             define_if_statement: None,
 
-            define_for_loop_statement: None
+            define_for_loop_statement: None,
+            define_continue_statement: None,
         };
     }
 }

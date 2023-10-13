@@ -2,6 +2,7 @@ use std::collections::{
     HashMap,
     VecDeque
 };
+use std::ops::Deref;
 use std::process::Command;
 
 use crate::environments::{
@@ -60,7 +61,8 @@ impl CodeGenerator{
         let mut environments_stack = VecDeque::new();
         environments_stack.push_back(Environment {
             scope: EnvironmentScope::Main,
-            variables: HashMap::new()
+            variables: HashMap::new(),
+            internal_variables: HashMap::new(),
         });
 
         return Ok(CodeGenerator{
@@ -93,6 +95,20 @@ impl CodeGenerator{
             variable_name, Some(variable));
     }
 
+    fn insert_internal_variable_into_environment_stack(
+        &mut self, variable_name: String, variable: Variable
+    ){
+        for environment in &mut self.environments_stack{
+            if environment.internal_variables.contains_key(&variable_name){
+                environment.internal_variables.insert(variable_name, variable);
+                return ;
+            }
+        }
+
+        self.environments_stack.back_mut().as_mut().unwrap().internal_variables.insert(
+            variable_name, variable);
+    }
+
     fn is_variable_exists(&mut self, variable_name: &String) -> bool{
         for environment in &self.environments_stack{
             if environment.variables.contains_key(variable_name){
@@ -119,6 +135,21 @@ impl CodeGenerator{
         return Err(format!(
             "Engine Compiler: Code Generation Error -> Variable `{}` not found.",
             variable_name));
+    }
+
+    fn get_internal_variable(
+        &mut self, variable_name: &String
+    ) -> Option<Variable>{
+
+        for environment in &self.environments_stack{
+            if environment.internal_variables.contains_key(variable_name){
+                return Some(
+                    environment.internal_variables.get(variable_name)
+                        .as_ref().unwrap().deref().clone());
+            }
+        }
+
+        return None;
     }
 
     pub fn execute(&mut self) -> Result<(), String>{
@@ -220,6 +251,7 @@ fn generate_statement_node(
             &mut code_generator,
             &statement.define_var_statement.as_ref().unwrap())?;
     }
+
     else if statement.statement_type == Some(StatementType::DefineVariable){
         generate_define_variable(
             &mut code_generator,
@@ -242,6 +274,9 @@ fn generate_statement_node(
         generate_define_for_loop_statement(
             &mut code_generator,
             &mut statement.define_for_loop_statement.as_mut().unwrap())?;
+    }
+    else if statement.statement_type == Some(StatementType::Continue){
+        generate_continue_statement(&mut code_generator)?;
     }
 
     return Ok(());
@@ -623,7 +658,8 @@ fn generate_define_if_statement(
     {
         code_generator.environments_stack.push_back(Environment {
             scope: EnvironmentScope::If,
-            variables: HashMap::new()
+            variables: HashMap::new(),
+            internal_variables: HashMap::new(),
         });
 
         let define_if_node = statement.define_if_node.as_mut().unwrap();
@@ -644,7 +680,8 @@ fn generate_define_if_statement(
         for define_if_else_node in &mut statement.define_if_else_nodes{
             code_generator.environments_stack.push_back(Environment {
                 scope: EnvironmentScope::If,
-                variables: HashMap::new()
+                variables: HashMap::new(),
+                internal_variables: HashMap::new(),
             });
 
             let result = &else_if_condition_results[index];
@@ -667,7 +704,8 @@ fn generate_define_if_statement(
         if statement.define_else_node != None{
             code_generator.environments_stack.push_back(Environment {
                 scope: EnvironmentScope::If,
-                variables: HashMap::new()
+                variables: HashMap::new(),
+                internal_variables: HashMap::new(),
             });
 
             let define_else_node = statement.define_else_node.as_mut().unwrap();
@@ -709,6 +747,15 @@ fn generate_define_for_loop_statement(
             start_loop_variable_name = format!(
                 "temp{}", code_generator.generate_variable_name().clone());
 
+            code_generator.insert_internal_variable_into_environment_stack(
+                String::from("start_loop_variable"),
+                Variable {
+                    variable_type: Some(TokenType::Int),
+                    name: Some(start_loop_variable_name.clone()),
+                    value: None,
+                    is_reasigned: false
+                });
+
             code_generator.file.writeln(format!(
                 "let mut {}: i64 = {} as i64;",
                 start_loop_variable_name, result.0));
@@ -716,6 +763,15 @@ fn generate_define_for_loop_statement(
         else{
             start_loop_variable_name = format!(
                 "temp{}", code_generator.generate_variable_name().clone());
+
+            code_generator.insert_internal_variable_into_environment_stack(
+                String::from("start_loop_variable"),
+                Variable {
+                    variable_type: Some(TokenType::Int),
+                    name: Some(start_loop_variable_name.clone()),
+                    value: None,
+                    is_reasigned: false
+                });
 
             code_generator.file.writeln(format!(
                 "let mut {}: i64 = 0;", start_loop_variable_name));
@@ -742,6 +798,15 @@ fn generate_define_for_loop_statement(
             step_loop_variable_name = format!(
                 "temp{}", code_generator.generate_variable_name().clone());
 
+            code_generator.insert_internal_variable_into_environment_stack(
+                String::from("step_loop_variable"),
+                Variable {
+                    variable_type: Some(TokenType::Int),
+                    name: Some(step_loop_variable_name.clone()),
+                    value: None,
+                    is_reasigned: false
+                });
+
             code_generator.file.writeln(format!(
                 "let mut {}: i64 = {} as i64;",
                 step_loop_variable_name, result.0));
@@ -765,7 +830,8 @@ fn generate_define_for_loop_statement(
         {
             code_generator.environments_stack.push_back(Environment {
                 scope: EnvironmentScope::ForLoop,
-                variables: HashMap::new()
+                variables: HashMap::new(),
+                internal_variables: HashMap::new(),
             });
 
             if statement.variable != None{
@@ -810,6 +876,36 @@ fn generate_define_for_loop_statement(
 
     return Ok(());
 }
+
+
+fn generate_continue_statement(
+    code_generator: &mut CodeGenerator
+) -> Result<(), String>{
+
+    let start_variable = code_generator.get_internal_variable(
+        &String::from("start_loop_variable"));
+
+    let step_variable = code_generator.get_internal_variable(
+        &String::from("step_loop_variable"));
+
+    if start_variable != None{
+
+        if step_variable == None{
+            code_generator.file.writeln(format!(
+                "{} += 1;", start_variable.as_ref().unwrap().name.as_ref().unwrap()));
+        }
+        else{
+            code_generator.file.writeln(format!(
+                "{} += {};", start_variable.as_ref().unwrap().name.as_ref().unwrap(),
+                step_variable.as_ref().unwrap().name.as_ref().unwrap()));
+        }
+    }
+
+    code_generator.file.writeln(String::from("continue;"));
+
+    return Ok(());
+}
+
 
 fn define_operation_node_variables(
     code_generator: &mut CodeGenerator,

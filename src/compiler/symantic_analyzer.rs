@@ -28,6 +28,7 @@ use crate::syntax_tree::{
     OperatorType,
     DefineIfStatementNode,
     DefineForLoopStatementNode,
+    DefineContinueStatementNode,
 };
 
 
@@ -41,7 +42,8 @@ impl Analyzer{
         let mut environments_stack = VecDeque::new();
         environments_stack.push_back(Environment {
             scope: EnvironmentScope::Main,
-            variables: HashMap::new()
+            variables: HashMap::new(),
+            internal_variables: HashMap::new(),
         });
 
         return Analyzer{
@@ -155,6 +157,10 @@ pub fn analyze(
         else if statement.statement_type == Some(StatementType::DefineForLoop){
             analyze_define_for_loop_statement(
                 &mut analyzer, statement.define_for_loop_statement.unwrap().clone())?;
+        }
+        else if statement.statement_type == Some(StatementType::Continue){
+            analyze_continue_statement(
+                &mut analyzer, statement.define_continue_statement.as_ref().unwrap())?;
         }
     }
 
@@ -520,7 +526,8 @@ fn analyze_define_if_statement(
     {
         analyzer.environments_stack.push_back(Environment {
             scope: EnvironmentScope::If,
-            variables: HashMap::new()
+            variables: HashMap::new(),
+            internal_variables: HashMap::new(),
         });
 
         let define_if_node = statement.define_if_node.as_ref().unwrap();
@@ -548,7 +555,8 @@ fn analyze_define_if_statement(
         for define_if_else_node in &statement.define_if_else_nodes{
             analyzer.environments_stack.push_back(Environment {
                 scope: EnvironmentScope::If,
-                variables: HashMap::new()
+                variables: HashMap::new(),
+                internal_variables: HashMap::new(),
             });
 
             let node_type = analyze_operation_node(
@@ -575,7 +583,8 @@ fn analyze_define_if_statement(
         if statement.define_else_node != None{
             analyzer.environments_stack.push_back(Environment {
                 scope: EnvironmentScope::If,
-                variables: HashMap::new()
+                variables: HashMap::new(),
+                internal_variables: HashMap::new(),
             });
 
             let define_else_node = statement.define_else_node.as_ref().unwrap();
@@ -657,7 +666,8 @@ fn analyze_define_for_loop_statement(
     /* Analyze for loop statements */
     analyzer.environments_stack.push_back(Environment {
         scope: EnvironmentScope::ForLoop,
-        variables: HashMap::new()
+        variables: HashMap::new(),
+        internal_variables: HashMap::new(),
     });
 
     /* Add Environments */
@@ -678,6 +688,27 @@ fn analyze_define_for_loop_statement(
     analyzer.environments_stack.pop_back();
 
     return Ok(());
+}
+
+
+fn analyze_continue_statement(
+    analyzer: &mut Analyzer,
+    statement: &DefineContinueStatementNode,
+) -> Result<(), String>{
+
+    for environment in &analyzer.environments_stack{
+        if environment.scope == EnvironmentScope::ForLoop{
+            return Ok(());
+        }
+    }
+
+    let continue_token = statement.meta.get("continue-token").as_ref().unwrap().as_ref().unwrap();
+
+    return Err(format!(
+        "Engine Compiler: Analyze Error -> {}, line {}:{}.",
+        "Use of `continue` statement outside of Loop statement if invalid",
+        continue_token.start_line,
+        continue_token.start_pos));
 }
 
 

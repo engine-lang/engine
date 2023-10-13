@@ -59,7 +59,8 @@ impl ByteCodeGenerator{
         let mut environments_stack = VecDeque::new();
         environments_stack.push_back(Environment {
             scope: EnvironmentScope::Main,
-            variables: HashMap::new()
+            variables: HashMap::new(),
+            internal_variables: HashMap::new(),
         });
 
         return Ok(ByteCodeGenerator{
@@ -1019,7 +1020,8 @@ fn generate_if_statement(
 
         byte_code_generator.environments_stack.push_back(Environment {
             scope: EnvironmentScope::If,
-            variables: HashMap::new()
+            variables: HashMap::new(),
+            internal_variables: HashMap::new(),
         });
 
         /*
@@ -1075,7 +1077,8 @@ fn generate_if_statement(
 
             byte_code_generator.environments_stack.push_back(Environment {
                 scope: EnvironmentScope::If,
-                variables: HashMap::new()
+                variables: HashMap::new(),
+                internal_variables: HashMap::new(),
             });
 
             /*
@@ -1114,7 +1117,8 @@ fn generate_if_statement(
         if statement.define_else_node != None{
             byte_code_generator.environments_stack.push_back(Environment {
                 scope: EnvironmentScope::If,
-                variables: HashMap::new()
+                variables: HashMap::new(),
+                internal_variables: HashMap::new(),
             });
 
             let define_else_node = statement.define_else_node.as_mut().unwrap();
@@ -1315,7 +1319,8 @@ fn generate_for_loop_statement(
         {
             byte_code_generator.environments_stack.push_back(Environment {
                 scope: EnvironmentScope::ForLoop,
-                variables: HashMap::new()
+                variables: HashMap::new(),
+                internal_variables: HashMap::new(),
             });
 
             byte_code_generator.insert_variable_into_environments_stack(

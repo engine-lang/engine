@@ -41,7 +41,8 @@ impl Analyzer{
         let mut environments_stack = VecDeque::new();
         environments_stack.push_front(Environment {
             scope: EnvironmentScope::Main,
-            variables: HashMap::new()
+            variables: HashMap::new(),
+            internal_variables: HashMap::new(),
         });
 
         return Analyzer{

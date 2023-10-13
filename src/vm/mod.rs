@@ -34,7 +34,8 @@ pub fn execute_byte_code() -> Result<(), String>{
 
     let mut environment = Environment {
         scope: EnvironmentScope::Main,
-        variables: HashMap::new()
+        variables: HashMap::new(),
+        internal_variables: HashMap::new(),
     };
 
     let mut file = File::open_byte_file(&args[1]);

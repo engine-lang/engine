@@ -706,7 +706,7 @@ fn analyze_continue_statement(
 
     return Err(format!(
         "Engine Compiler: Analyze Error -> {}, line {}:{}.",
-        "Use of `continue` statement outside of Loop statement if invalid",
+        "Use of `continue` statement outside of Loop statement is invalid",
         continue_token.start_line,
         continue_token.start_pos));
 }

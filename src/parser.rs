@@ -29,6 +29,7 @@ use crate::syntax_tree::{
     DefineIfElseNode,
     DefineIfNode,
     DefineForLoopStatementNode,
+    DefineContinueStatementNode,
 };
 
 
@@ -115,6 +116,7 @@ pub fn statement(
 
         return Ok((result.0, node));
     }
+
     else if parser.current_token.token_type == TokenType::Variable{
         node.statement_type = Some(StatementType::DefineVariable);
 
@@ -123,6 +125,7 @@ pub fn statement(
 
         return Ok((result.0, node));
     }
+
     else if parser.current_token.token_type == TokenType::Print{
         node.statement_type = Some(StatementType::Print);
 
@@ -131,6 +134,7 @@ pub fn statement(
 
         return Ok((result.0, node));
     }
+
     else if parser.current_token.token_type == TokenType::If{
         node.statement_type = Some(StatementType::DefineIf);
 
@@ -139,6 +143,7 @@ pub fn statement(
 
         return Ok((result.0, node));
     }
+
     else if parser.current_token.token_type == TokenType::For{
         node.statement_type = Some(StatementType::DefineForLoop);
 
@@ -147,6 +152,15 @@ pub fn statement(
 
         return Ok((result.0, node));
     }
+    else if parser.current_token.token_type == TokenType::Continue{
+        node.statement_type = Some(StatementType::Continue);
+
+        let result = define_continue(&mut parser)?;
+        node.define_continue_statement = Some(result.1);
+
+        return Ok((result.0, node));
+    }
+
     else if
         parser.current_token.token_type == TokenType::SingleLineComment ||
         parser.current_token.token_type == TokenType::MultiLineComment ||
@@ -159,6 +173,7 @@ pub fn statement(
 
         return Ok((false, node));
     }
+
     else if parser.current_token.token_type == TokenType::Eof{
         return Ok((true, node));
     }
@@ -1126,4 +1141,32 @@ fn define_for_loop_statement(
     _move(&mut parser)?;
 
     return Ok((false, for_loop_node));
+}
+
+
+fn define_continue(
+    parser: &mut Parser
+) -> Result<(bool, DefineContinueStatementNode), String>{
+
+    let mut parser = parser;
+    let mut node = DefineContinueStatementNode::new();
+
+    node.meta.insert(
+        String::from("continue-token"),
+        Some(parser.current_token.clone()));
+
+    _move(&mut parser)?;
+
+    /* Match New Line */
+    bypass(&mut parser, vec![
+        TokenType::Space,
+        TokenType::SingleLineComment,
+        TokenType::MultiLineComment,
+    ])?;
+    _match(&mut parser, vec![
+        TokenType::NewLine
+    ])?;
+    _move(&mut parser)?;
+
+    return Ok((false, node));
 }

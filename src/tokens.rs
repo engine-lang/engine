@@ -61,6 +61,7 @@ pub enum TokenType{
     For,
     Comma,
     In,
+    Continue,
 
     BadToken,
 }
@@ -125,6 +126,9 @@ pub fn get_token_type(variable: &String) -> TokenType{
     }
     else if variable == "in" {
         return TokenType::In
+    }
+    else if variable == "continue" {
+        return TokenType::Continue;
     }
 
     return TokenType::Variable;

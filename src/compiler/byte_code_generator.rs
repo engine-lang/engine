@@ -1,3 +1,4 @@
+use std::ops::Deref;
 use std::collections::{
     HashMap,
     VecDeque
@@ -11,7 +12,9 @@ use crate::constants::BYTECODE_SPACE_STRING_LENGTH;
 use crate::environments::{
     Environment,
     EnvironmentScope,
-    Variable
+    Variable,
+    Value,
+    ValueType
 };
 use crate::syntax_tree::{
     StatementsNode,
@@ -36,7 +39,7 @@ use crate::syntax_tree::{
 pub struct ByteCodeGenerator{
     file: File,
     syntax_tree: StatementsNode,
-    currrent_counter: u128,
+    current_counter: u128,
     current_instruction_line: u128,
     environments_stack: VecDeque<Environment>,
 }
@@ -59,23 +62,25 @@ impl ByteCodeGenerator{
         let mut environments_stack = VecDeque::new();
         environments_stack.push_back(Environment {
             scope: EnvironmentScope::Main,
-            variables: HashMap::new()
+            variables: HashMap::new(),
+            internal_variables: HashMap::new(),
+            stop_statements_execution: false,
         });
 
         return Ok(ByteCodeGenerator{
             file: _file,
             syntax_tree,
-            currrent_counter: 0,
+            current_counter: 0,
             current_instruction_line: 0,
             environments_stack
         });
     }
 
     fn generate_temp_variable_name(&mut self) -> String{
-        self.currrent_counter += 1;
+        self.current_counter += 1;
         return format!(
             "temp_stack{}_variable_{}",
-            self.environments_stack.len(), self.currrent_counter);
+            self.environments_stack.len(), self.current_counter);
     }
 
     fn generate_variable_name(
@@ -114,6 +119,20 @@ impl ByteCodeGenerator{
             variable_name, Some(variable));
     }
 
+    fn insert_internal_variable_into_environment_stack(
+        &mut self, variable_name: String, variable: Variable
+    ){
+        for environment in &mut self.environments_stack{
+            if environment.internal_variables.contains_key(&variable_name){
+                environment.internal_variables.insert(variable_name, variable);
+                return ;
+            }
+        }
+
+        self.environments_stack.back_mut().as_mut().unwrap().internal_variables.insert(
+            variable_name, variable);
+    }
+
     fn get_variable_type(
         &self, variable_name: &String
     ) -> Result<TokenType, String>{
@@ -130,6 +149,21 @@ impl ByteCodeGenerator{
         return Err(format!(
             "Engine Compiler: Byte Code Generation Error -> Variable `{}` not found.",
             variable_name));
+    }
+
+    fn get_internal_variable(
+        &mut self, variable_name: &String
+    ) -> Option<Variable>{
+
+        for environment in &self.environments_stack{
+            if environment.internal_variables.contains_key(variable_name){
+                return Some(
+                    environment.internal_variables.get(variable_name)
+                        .as_ref().unwrap().deref().clone());
+            }
+        }
+
+        return None;
     }
 
     fn is_variable_exists(&mut self, variable_name: &String) -> bool{
@@ -246,6 +280,9 @@ fn generate_statement_node(
         generate_for_loop_statement(
             &mut byte_code_generator,
             &mut statement.define_for_loop_statement.as_mut().unwrap())?;
+    }
+    else if statement.statement_type == Some(StatementType::Continue){
+        generate_continue_statement(&mut byte_code_generator)?;
     }
 
     return Ok(());
@@ -1019,7 +1056,9 @@ fn generate_if_statement(
 
         byte_code_generator.environments_stack.push_back(Environment {
             scope: EnvironmentScope::If,
-            variables: HashMap::new()
+            variables: HashMap::new(),
+            internal_variables: HashMap::new(),
+            stop_statements_execution: false,
         });
 
         /*
@@ -1075,7 +1114,9 @@ fn generate_if_statement(
 
             byte_code_generator.environments_stack.push_back(Environment {
                 scope: EnvironmentScope::If,
-                variables: HashMap::new()
+                variables: HashMap::new(),
+                internal_variables: HashMap::new(),
+                stop_statements_execution: false,
             });
 
             /*
@@ -1114,7 +1155,9 @@ fn generate_if_statement(
         if statement.define_else_node != None{
             byte_code_generator.environments_stack.push_back(Environment {
                 scope: EnvironmentScope::If,
-                variables: HashMap::new()
+                variables: HashMap::new(),
+                internal_variables: HashMap::new(),
+                stop_statements_execution: false,
             });
 
             let define_else_node = statement.define_else_node.as_mut().unwrap();
@@ -1266,7 +1309,7 @@ fn generate_for_loop_statement(
 
     /* Generate loop */
     {
-        let mut start_loop_instruction_line: u128 = 0;
+        let mut start_loop_instruction_line: u128 = byte_code_generator.current_instruction_line + 1;
         let mut break_loop_instruction_line: (u128, u64, String) = (
             0, 0, String::from(""));
 
@@ -1315,8 +1358,45 @@ fn generate_for_loop_statement(
         {
             byte_code_generator.environments_stack.push_back(Environment {
                 scope: EnvironmentScope::ForLoop,
-                variables: HashMap::new()
+                variables: HashMap::new(),
+                internal_variables: HashMap::new(),
+                stop_statements_execution: false,
             });
+
+            byte_code_generator.insert_internal_variable_into_environment_stack(
+                String::from("start_loop_variable"),
+                Variable {
+                    variable_type: Some(TokenType::Int),
+                    name: Some(start_loop_variable_name.clone()),
+                    value: None,
+                    is_reasigned: false
+                });
+
+            if statement.step != None{
+                byte_code_generator.insert_internal_variable_into_environment_stack(
+                    String::from("step_loop_variable"),
+                    Variable {
+                        variable_type: Some(TokenType::Int),
+                        name: Some(step_loop_variable_name.clone()),
+                        value: None,
+                        is_reasigned: false
+                    });
+            }
+
+            byte_code_generator.insert_internal_variable_into_environment_stack(
+                String::from("start_loop_instruction_line"), Variable {
+                    variable_type: Some(TokenType::Int),
+                    name: Some(String::from("start_loop_instruction_line")),
+                    value: Some(Value{
+                        value_type: Some(ValueType::String),
+                        boolean: None,
+                        character: None,
+                        double: None,
+                        int: None,
+                        string: Some(format!("{start_loop_instruction_line}")),
+                        string_value: None
+                    }),
+                    is_reasigned: false });
 
             byte_code_generator.insert_variable_into_environments_stack(
                 statement.variable.as_ref().unwrap().value.clone(),
@@ -1407,6 +1487,69 @@ fn generate_for_loop_statement(
 
     return Ok(());
 }
+
+
+fn generate_continue_statement(
+    byte_code_generator: &mut ByteCodeGenerator,
+) -> Result<(), String>{
+
+    let start_variable = byte_code_generator.get_internal_variable(
+        &String::from("start_loop_variable"));
+
+    let step_variable = byte_code_generator.get_internal_variable(
+        &String::from("step_loop_variable"));
+
+    if start_variable != None{
+
+        if step_variable != None{
+
+            let current_line = byte_code_generator.get_current_line();
+            byte_code_generator.file.writeln(format!(
+                "{}:Operation:{:?}:\"{}\":\"{}\":\"{}\"",
+                current_line, TokenType::Plus,
+                start_variable.as_ref().unwrap().name.as_ref().unwrap(),
+                start_variable.as_ref().unwrap().name.as_ref().unwrap(),
+                step_variable.as_ref().unwrap().name.as_ref().unwrap()));
+
+        }
+        else{
+
+            let temp_step_variable = byte_code_generator.generate_temp_variable_name();
+
+            /* Define Temp Variable */
+            {
+                let current_line = byte_code_generator.get_current_line();
+                byte_code_generator.file.writeln(format!(
+                    "{current_line}:Assign:int:\"{temp_step_variable}\":1"));
+            }
+
+            /* Add Operation */
+            let current_line = byte_code_generator.get_current_line();
+            byte_code_generator.file.writeln(format!(
+                "{}:Operation:{:?}:\"{}\":\"{}\":\"{}\"",
+                current_line, TokenType::Plus,
+                start_variable.as_ref().unwrap().name.as_ref().unwrap(),
+                start_variable.as_ref().unwrap().name.as_ref().unwrap(),
+                temp_step_variable));
+        }
+
+        /* Go To The Start Of The Loop */
+        {
+            let start_loop_instruction_line = byte_code_generator.get_internal_variable(
+                &String::from("start_loop_instruction_line"));
+
+            let current_line = byte_code_generator.get_current_line();
+            byte_code_generator.file.writeln(format!(
+                "{current_line}:GoTo:{}",
+                start_loop_instruction_line.as_ref().unwrap()
+                    .value.as_ref().unwrap().string.as_ref().unwrap()));
+
+        }
+    }
+
+    return Ok(());
+}
+
 
 fn define_operation_node_variables(
     byte_code_generator: &mut ByteCodeGenerator,

@@ -25,6 +25,8 @@ pub enum ValueType {
 pub struct Environment{
     pub scope: EnvironmentScope,
     pub variables: HashMap<String, Option<Variable>>,
+    pub internal_variables: HashMap<String, Variable>,
+    pub stop_statements_execution: bool,
 }
 
 

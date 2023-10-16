@@ -41,12 +41,26 @@ impl Analyzer{
         let mut environments_stack = VecDeque::new();
         environments_stack.push_front(Environment {
             scope: EnvironmentScope::Main,
-            variables: HashMap::new()
+            variables: HashMap::new(),
+            internal_variables: HashMap::new(),
+            stop_statements_execution: false,
         });
 
         return Analyzer{
             environments_stack
         };
+    }
+}
+
+impl Analyzer{
+    pub fn stop_current_statements_executions(&self) -> bool{
+        for environment in &self.environments_stack{
+            if environment.stop_statements_execution{
+                return true;
+            }
+        }
+
+        return false;
     }
 }
 

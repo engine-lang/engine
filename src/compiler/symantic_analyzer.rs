@@ -29,6 +29,7 @@ use crate::syntax_tree::{
     DefineIfStatementNode,
     DefineForLoopStatementNode,
     DefineContinueStatementNode,
+    DefineBreakStatementNode,
 };
 
 
@@ -162,6 +163,10 @@ pub fn analyze(
         else if statement.statement_type == Some(StatementType::Continue){
             analyze_continue_statement(
                 &mut analyzer, statement.define_continue_statement.as_ref().unwrap())?;
+        }
+        else if statement.statement_type == Some(StatementType::Break){
+            analyze_break_statement(
+                &mut analyzer, statement.define_break_statement.as_ref().unwrap())?;
         }
     }
 
@@ -714,6 +719,27 @@ fn analyze_continue_statement(
         "Use of `continue` statement outside of Loop statement is invalid",
         continue_token.start_line,
         continue_token.start_pos));
+}
+
+
+fn analyze_break_statement(
+    analyzer: &mut Analyzer,
+    statement: &DefineBreakStatementNode,
+) -> Result<(), String>{
+
+    for environment in &analyzer.environments_stack{
+        if environment.scope == EnvironmentScope::ForLoop{
+            return Ok(());
+        }
+    }
+
+    let break_token = statement.meta.get("break-token").as_ref().unwrap().as_ref().unwrap();
+
+    return Err(format!(
+        "Engine Compiler: Analyze Error -> {}, line {}:{}.",
+        "Use of `break` statement outside of Loop statement is invalid",
+        break_token.start_line,
+        break_token.start_pos));
 }
 
 

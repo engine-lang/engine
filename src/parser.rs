@@ -30,6 +30,7 @@ use crate::syntax_tree::{
     DefineIfNode,
     DefineForLoopStatementNode,
     DefineContinueStatementNode,
+    DefineBreakStatementNode,
 };
 
 
@@ -155,8 +156,16 @@ pub fn statement(
     else if parser.current_token.token_type == TokenType::Continue{
         node.statement_type = Some(StatementType::Continue);
 
-        let result = define_continue(&mut parser)?;
+        let result = define_continue_statement(&mut parser)?;
         node.define_continue_statement = Some(result.1);
+
+        return Ok((result.0, node));
+    }
+    else if parser.current_token.token_type == TokenType::Break{
+        node.statement_type = Some(StatementType::Break);
+
+        let result = define_break_statement(&mut parser)?;
+        node.define_break_statement = Some(result.1);
 
         return Ok((result.0, node));
     }
@@ -1144,7 +1153,7 @@ fn define_for_loop_statement(
 }
 
 
-fn define_continue(
+fn define_continue_statement(
     parser: &mut Parser
 ) -> Result<(bool, DefineContinueStatementNode), String>{
 
@@ -1153,6 +1162,34 @@ fn define_continue(
 
     node.meta.insert(
         String::from("continue-token"),
+        Some(parser.current_token.clone()));
+
+    _move(&mut parser)?;
+
+    /* Match New Line */
+    bypass(&mut parser, vec![
+        TokenType::Space,
+        TokenType::SingleLineComment,
+        TokenType::MultiLineComment,
+    ])?;
+    _match(&mut parser, vec![
+        TokenType::NewLine
+    ])?;
+    _move(&mut parser)?;
+
+    return Ok((false, node));
+}
+
+
+fn define_break_statement(
+    parser: &mut Parser
+) -> Result<(bool, DefineBreakStatementNode), String>{
+
+    let mut parser = parser;
+    let mut node = DefineBreakStatementNode::new();
+
+    node.meta.insert(
+        String::from("break-token"),
         Some(parser.current_token.clone()));
 
     _move(&mut parser)?;

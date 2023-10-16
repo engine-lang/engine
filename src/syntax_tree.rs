@@ -27,6 +27,7 @@ pub enum StatementType{
 
     DefineForLoop,
     Continue,
+    Break,
 }
 
 
@@ -317,6 +318,21 @@ impl DefineContinueStatementNode {
 
 
 #[derive(Debug, Clone, PartialEq)]
+pub struct DefineBreakStatementNode{
+    pub meta: HashMap<String, Option<Token>>,
+}
+impl DefineBreakStatementNode {
+    pub fn new() -> Self{
+        return DefineBreakStatementNode{
+            meta: HashMap::from([
+                (String::from("break-token"), None)
+            ])
+        };
+    }
+}
+
+
+#[derive(Debug, Clone, PartialEq)]
 pub struct StatementNode{
     pub statement_type: Option<StatementType>,
 
@@ -334,6 +350,7 @@ pub struct StatementNode{
 
     pub define_for_loop_statement: Option<DefineForLoopStatementNode>,
     pub define_continue_statement: Option<DefineContinueStatementNode>,
+    pub define_break_statement: Option<DefineBreakStatementNode>,
 }
 
 impl StatementNode{
@@ -355,6 +372,7 @@ impl StatementNode{
 
             define_for_loop_statement: None,
             define_continue_statement: None,
+            define_break_statement: None,
         };
     }
 }

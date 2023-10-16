@@ -279,6 +279,9 @@ fn generate_statement_node(
     else if statement.statement_type == Some(StatementType::Continue){
         generate_continue_statement(&mut code_generator)?;
     }
+    else if statement.statement_type == Some(StatementType::Break){
+        generate_break_statement(&mut code_generator)?;
+    }
 
     return Ok(());
 }
@@ -907,6 +910,16 @@ fn generate_continue_statement(
     }
 
     code_generator.file.writeln(String::from("continue;"));
+
+    return Ok(());
+}
+
+
+fn generate_break_statement(
+    code_generator: &mut CodeGenerator
+) -> Result<(), String>{
+
+    code_generator.file.writeln(String::from("break;"));
 
     return Ok(());
 }

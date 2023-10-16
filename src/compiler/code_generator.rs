@@ -63,6 +63,7 @@ impl CodeGenerator{
             scope: EnvironmentScope::Main,
             variables: HashMap::new(),
             internal_variables: HashMap::new(),
+            stop_statements_execution: false,
         });
 
         return Ok(CodeGenerator{
@@ -660,6 +661,7 @@ fn generate_define_if_statement(
             scope: EnvironmentScope::If,
             variables: HashMap::new(),
             internal_variables: HashMap::new(),
+            stop_statements_execution: false,
         });
 
         let define_if_node = statement.define_if_node.as_mut().unwrap();
@@ -682,6 +684,7 @@ fn generate_define_if_statement(
                 scope: EnvironmentScope::If,
                 variables: HashMap::new(),
                 internal_variables: HashMap::new(),
+                stop_statements_execution: false,
             });
 
             let result = &else_if_condition_results[index];
@@ -706,6 +709,7 @@ fn generate_define_if_statement(
                 scope: EnvironmentScope::If,
                 variables: HashMap::new(),
                 internal_variables: HashMap::new(),
+                stop_statements_execution: false,
             });
 
             let define_else_node = statement.define_else_node.as_mut().unwrap();
@@ -832,6 +836,7 @@ fn generate_define_for_loop_statement(
                 scope: EnvironmentScope::ForLoop,
                 variables: HashMap::new(),
                 internal_variables: HashMap::new(),
+                stop_statements_execution: false,
             });
 
             if statement.variable != None{

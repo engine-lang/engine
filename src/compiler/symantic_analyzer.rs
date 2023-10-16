@@ -44,6 +44,7 @@ impl Analyzer{
             scope: EnvironmentScope::Main,
             variables: HashMap::new(),
             internal_variables: HashMap::new(),
+            stop_statements_execution: false,
         });
 
         return Analyzer{
@@ -528,6 +529,7 @@ fn analyze_define_if_statement(
             scope: EnvironmentScope::If,
             variables: HashMap::new(),
             internal_variables: HashMap::new(),
+            stop_statements_execution: false,
         });
 
         let define_if_node = statement.define_if_node.as_ref().unwrap();
@@ -557,6 +559,7 @@ fn analyze_define_if_statement(
                 scope: EnvironmentScope::If,
                 variables: HashMap::new(),
                 internal_variables: HashMap::new(),
+                stop_statements_execution: false,
             });
 
             let node_type = analyze_operation_node(
@@ -585,6 +588,7 @@ fn analyze_define_if_statement(
                 scope: EnvironmentScope::If,
                 variables: HashMap::new(),
                 internal_variables: HashMap::new(),
+                stop_statements_execution: false,
             });
 
             let define_else_node = statement.define_else_node.as_ref().unwrap();
@@ -668,6 +672,7 @@ fn analyze_define_for_loop_statement(
         scope: EnvironmentScope::ForLoop,
         variables: HashMap::new(),
         internal_variables: HashMap::new(),
+        stop_statements_execution: false,
     });
 
     /* Add Environments */

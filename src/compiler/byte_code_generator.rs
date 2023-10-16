@@ -64,6 +64,7 @@ impl ByteCodeGenerator{
             scope: EnvironmentScope::Main,
             variables: HashMap::new(),
             internal_variables: HashMap::new(),
+            stop_statements_execution: false,
         });
 
         return Ok(ByteCodeGenerator{
@@ -1057,6 +1058,7 @@ fn generate_if_statement(
             scope: EnvironmentScope::If,
             variables: HashMap::new(),
             internal_variables: HashMap::new(),
+            stop_statements_execution: false,
         });
 
         /*
@@ -1114,6 +1116,7 @@ fn generate_if_statement(
                 scope: EnvironmentScope::If,
                 variables: HashMap::new(),
                 internal_variables: HashMap::new(),
+                stop_statements_execution: false,
             });
 
             /*
@@ -1154,6 +1157,7 @@ fn generate_if_statement(
                 scope: EnvironmentScope::If,
                 variables: HashMap::new(),
                 internal_variables: HashMap::new(),
+                stop_statements_execution: false,
             });
 
             let define_else_node = statement.define_else_node.as_mut().unwrap();
@@ -1356,6 +1360,7 @@ fn generate_for_loop_statement(
                 scope: EnvironmentScope::ForLoop,
                 variables: HashMap::new(),
                 internal_variables: HashMap::new(),
+                stop_statements_execution: false,
             });
 
             byte_code_generator.insert_internal_variable_into_environment_stack(

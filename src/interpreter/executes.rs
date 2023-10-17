@@ -7,7 +7,8 @@ use crate::environments::{
     Value,
     ValueType,
     Environment,
-    EnvironmentScope
+    EnvironmentScope,
+    StopExecutionType,
 };
 use crate::syntax_tree::{
     DefineBoolNode,
@@ -25,7 +26,8 @@ use crate::syntax_tree::{
     DefineIfStatementNode,
     StatementsNode,
     DefineForLoopStatementNode,
-    DefineContinueStatementNode
+    DefineContinueStatementNode,
+    DefineBreakStatementNode,
 };
 use crate::interpreter::symantic_analyzer::{
     analyze_define_bool,
@@ -120,6 +122,10 @@ pub fn execute_statement(
     else if node.statement_type == Some(StatementType::Continue){
         execute_continue_statement(
             &mut analyzer, node.define_continue_statement.as_ref().unwrap())?;
+    }
+    else if node.statement_type == Some(StatementType::Break){
+        execute_break_statement(
+            &mut analyzer, node.define_break_statement.as_ref().unwrap())?;
     }
 
     return Ok(());
@@ -514,7 +520,7 @@ fn execute_define_if_statement(
             scope: EnvironmentScope::If,
             variables: HashMap::new(),
             internal_variables: HashMap::new(),
-            stop_statements_execution: false,
+            stop_statements_execution: None,
         });
 
         let define_if_node = statement.define_if_node.as_ref().unwrap();
@@ -547,7 +553,7 @@ fn execute_define_if_statement(
                 scope: EnvironmentScope::If,
                 variables: HashMap::new(),
                 internal_variables: HashMap::new(),
-                stop_statements_execution: false,
+                stop_statements_execution: None,
             });
 
             analyze_if_condition(
@@ -575,7 +581,7 @@ fn execute_define_if_statement(
                 scope: EnvironmentScope::If,
                 variables: HashMap::new(),
                 internal_variables: HashMap::new(),
-                stop_statements_execution: false,
+                stop_statements_execution: None,
             });
 
             let define_else_node = statement.define_else_node.as_ref().unwrap();
@@ -654,7 +660,7 @@ fn execute_define_for_loop_statement(
             scope: EnvironmentScope::ForLoop,
             variables: HashMap::new(),
             internal_variables: HashMap::new(),
-            stop_statements_execution: false,
+            stop_statements_execution: None,
         });
 
         /* Add Variable */
@@ -677,6 +683,14 @@ fn execute_define_for_loop_statement(
         }
 
         execute_statements(&mut analyzer, &statement.statements)?;
+
+        if analyzer.environments_stack.front()
+                .as_ref().unwrap().stop_statements_execution == Some(StopExecutionType::Break)
+        {
+            analyzer.environments_stack.pop_front();
+
+            return Ok(());
+        }
 
         analyzer.environments_stack.pop_front();
 
@@ -703,7 +717,7 @@ fn execute_continue_statement(
 
     for environment in &mut analyzer.environments_stack{
         if environment.scope == EnvironmentScope::ForLoop{
-            environment.stop_statements_execution = true;
+            environment.stop_statements_execution = Some(StopExecutionType::Continue);
             return Ok(());
         }
     }
@@ -712,9 +726,31 @@ fn execute_continue_statement(
 
     return Err(format!(
         "Engine Interpreter: Analyze Error -> {}, line {}:{}.",
-        "Use of `continue` statement outside of Loop statement is invalid",
+        "Use of `continue` statement outside of loop statement is invalid",
         continue_token.start_line,
         continue_token.start_pos));
+}
+
+
+fn execute_break_statement(
+    analyzer: &mut Analyzer,
+    statement: &DefineBreakStatementNode
+) -> Result<(), String>{
+
+    for environment in &mut analyzer.environments_stack{
+        if environment.scope == EnvironmentScope::ForLoop{
+            environment.stop_statements_execution = Some(StopExecutionType::Break);
+            return Ok(());
+        }
+    }
+
+    let break_token = statement.meta.get("break-token").as_ref().unwrap().as_ref().unwrap();
+
+    return Err(format!(
+        "Engine Interpreter: Analyze Error -> {}, line {}:{}.",
+        "Use of `break` statement outside of loop statement is invalid",
+        break_token.start_line,
+        break_token.start_pos));
 }
 
 

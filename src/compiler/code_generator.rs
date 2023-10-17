@@ -63,7 +63,7 @@ impl CodeGenerator{
             scope: EnvironmentScope::Main,
             variables: HashMap::new(),
             internal_variables: HashMap::new(),
-            stop_statements_execution: false,
+            stop_statements_execution: None,
         });
 
         return Ok(CodeGenerator{
@@ -101,13 +101,15 @@ impl CodeGenerator{
     ){
         for environment in &mut self.environments_stack{
             if environment.internal_variables.contains_key(&variable_name){
-                environment.internal_variables.insert(variable_name, variable);
+                environment.internal_variables.entry(variable_name).and_modify(|e|{
+                    e.push_back(variable)
+                });
                 return ;
             }
         }
 
         self.environments_stack.back_mut().as_mut().unwrap().internal_variables.insert(
-            variable_name, variable);
+            variable_name, VecDeque::from([variable]));
     }
 
     fn is_variable_exists(&mut self, variable_name: &String) -> bool{
@@ -140,7 +142,7 @@ impl CodeGenerator{
 
     fn get_internal_variable(
         &mut self, variable_name: &String
-    ) -> Option<Variable>{
+    ) -> Option<VecDeque<Variable>>{
 
         for environment in &self.environments_stack{
             if environment.internal_variables.contains_key(variable_name){
@@ -278,6 +280,9 @@ fn generate_statement_node(
     }
     else if statement.statement_type == Some(StatementType::Continue){
         generate_continue_statement(&mut code_generator)?;
+    }
+    else if statement.statement_type == Some(StatementType::Break){
+        generate_break_statement(&mut code_generator)?;
     }
 
     return Ok(());
@@ -661,7 +666,7 @@ fn generate_define_if_statement(
             scope: EnvironmentScope::If,
             variables: HashMap::new(),
             internal_variables: HashMap::new(),
-            stop_statements_execution: false,
+            stop_statements_execution: None,
         });
 
         let define_if_node = statement.define_if_node.as_mut().unwrap();
@@ -684,7 +689,7 @@ fn generate_define_if_statement(
                 scope: EnvironmentScope::If,
                 variables: HashMap::new(),
                 internal_variables: HashMap::new(),
-                stop_statements_execution: false,
+                stop_statements_execution: None,
             });
 
             let result = &else_if_condition_results[index];
@@ -709,7 +714,7 @@ fn generate_define_if_statement(
                 scope: EnvironmentScope::If,
                 variables: HashMap::new(),
                 internal_variables: HashMap::new(),
-                stop_statements_execution: false,
+                stop_statements_execution: None,
             });
 
             let define_else_node = statement.define_else_node.as_mut().unwrap();
@@ -836,7 +841,7 @@ fn generate_define_for_loop_statement(
                 scope: EnvironmentScope::ForLoop,
                 variables: HashMap::new(),
                 internal_variables: HashMap::new(),
-                stop_statements_execution: false,
+                stop_statements_execution: None,
             });
 
             if statement.variable != None{
@@ -897,16 +902,31 @@ fn generate_continue_statement(
 
         if step_variable == None{
             code_generator.file.writeln(format!(
-                "{} += 1;", start_variable.as_ref().unwrap().name.as_ref().unwrap()));
+                "{} += 1;",
+                start_variable.as_ref().unwrap()
+                    .back().as_ref().unwrap().name.as_ref().unwrap()));
         }
         else{
             code_generator.file.writeln(format!(
-                "{} += {};", start_variable.as_ref().unwrap().name.as_ref().unwrap(),
-                step_variable.as_ref().unwrap().name.as_ref().unwrap()));
+                "{} += {};",
+                start_variable.as_ref().unwrap()
+                    .back().as_ref().unwrap().name.as_ref().unwrap(),
+                step_variable.as_ref().unwrap()
+                    .back().as_ref().unwrap().name.as_ref().unwrap()));
         }
     }
 
     code_generator.file.writeln(String::from("continue;"));
+
+    return Ok(());
+}
+
+
+fn generate_break_statement(
+    code_generator: &mut CodeGenerator
+) -> Result<(), String>{
+
+    code_generator.file.writeln(String::from("break;"));
 
     return Ok(());
 }

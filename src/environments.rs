@@ -1,4 +1,7 @@
-use std::collections::HashMap;
+use std::collections::{
+    HashMap,
+    VecDeque,
+};
 
 use crate::tokens::TokenType;
 
@@ -22,11 +25,18 @@ pub enum ValueType {
 
 
 #[derive(Debug, Clone, PartialEq)]
+pub enum StopExecutionType{
+    Continue,
+    Break
+}
+
+
+#[derive(Debug, Clone, PartialEq)]
 pub struct Environment{
     pub scope: EnvironmentScope,
     pub variables: HashMap<String, Option<Variable>>,
-    pub internal_variables: HashMap<String, Variable>,
-    pub stop_statements_execution: bool,
+    pub internal_variables: HashMap<String, VecDeque<Variable>>,
+    pub stop_statements_execution: Option<StopExecutionType>,
 }
 
 

@@ -62,6 +62,7 @@ pub enum TokenType{
     Comma,
     In,
     Continue,
+    Break,
 
     BadToken,
 }
@@ -77,22 +78,22 @@ pub struct Token{
 
 
 pub fn get_token_type(variable: &String) -> TokenType{
-    if variable == "bool" {
+    if variable == "bool"{
         return TokenType::Bool
     }
-    else if variable == "int" {
+    else if variable == "int"{
         return TokenType::Int
     }
-    else if variable == "double" {
+    else if variable == "double"{
         return TokenType::Double
     }
-    else if variable == "char" {
+    else if variable == "char"{
         return TokenType::Char
     }
-    else if variable == "string" {
+    else if variable == "string"{
         return TokenType::String
     }
-    else if variable == "var" {
+    else if variable == "var"{
         return TokenType::Var
     }
 
@@ -100,35 +101,38 @@ pub fn get_token_type(variable: &String) -> TokenType{
         return TokenType::As;
     }
 
-    else if variable == "True" {
+    else if variable == "True"{
         return TokenType::True
     }
-    else if variable == "False" {
+    else if variable == "False"{
         return TokenType::False
     }
 
-    else if variable == "input" {
+    else if variable == "input"{
         return TokenType::Input
     }
-    else if variable == "print" {
+    else if variable == "print"{
         return TokenType::Print
     }
 
-    else if variable == "if" {
+    else if variable == "if"{
         return TokenType::If
     }
-    else if variable == "else" {
+    else if variable == "else"{
         return TokenType::Else
     }
 
-    else if variable == "for" {
+    else if variable == "for"{
         return TokenType::For
     }
-    else if variable == "in" {
+    else if variable == "in"{
         return TokenType::In
     }
-    else if variable == "continue" {
+    else if variable == "continue"{
         return TokenType::Continue;
+    }
+    else if variable == "break"{
+        return TokenType::Break;
     }
 
     return TokenType::Variable;

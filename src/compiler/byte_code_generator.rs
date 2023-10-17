@@ -124,13 +124,15 @@ impl ByteCodeGenerator{
     ){
         for environment in &mut self.environments_stack{
             if environment.internal_variables.contains_key(&variable_name){
-                environment.internal_variables.insert(variable_name, variable);
+                environment.internal_variables.entry(variable_name).and_modify(|e|{
+                    e.push_back(variable)
+                });
                 return ;
             }
         }
 
         self.environments_stack.back_mut().as_mut().unwrap().internal_variables.insert(
-            variable_name, variable);
+            variable_name, VecDeque::from([variable]));
     }
 
     fn get_variable_type(
@@ -153,7 +155,7 @@ impl ByteCodeGenerator{
 
     fn get_internal_variable(
         &mut self, variable_name: &String
-    ) -> Option<Variable>{
+    ) -> Option<VecDeque<Variable>>{
 
         for environment in &self.environments_stack{
             if environment.internal_variables.contains_key(variable_name){
@@ -283,6 +285,9 @@ fn generate_statement_node(
     }
     else if statement.statement_type == Some(StatementType::Continue){
         generate_continue_statement(&mut byte_code_generator)?;
+    }
+    else if statement.statement_type == Some(StatementType::Break){
+        generate_break_statement(&mut byte_code_generator)?;
     }
 
     return Ok(());
@@ -1224,6 +1229,7 @@ fn generate_for_loop_statement(
     let start_loop_variable_name: String;
     let mut stop_loop_variable_name: String = String::from("");
     let mut step_loop_variable_name: String = String::from("");
+    let break_lines: Option<VecDeque<Variable>>;
 
     /* Generate loop conditions instructions */
     {
@@ -1359,7 +1365,9 @@ fn generate_for_loop_statement(
             byte_code_generator.environments_stack.push_back(Environment {
                 scope: EnvironmentScope::ForLoop,
                 variables: HashMap::new(),
-                internal_variables: HashMap::new(),
+                internal_variables: HashMap::from([
+                    (String::from("break_lines"), VecDeque::new())
+                ]),
                 stop_statements_execution: false,
             });
 
@@ -1429,6 +1437,9 @@ fn generate_for_loop_statement(
             generate_statements_node(
                 &mut byte_code_generator, &mut statement.statements)?;
 
+            break_lines = byte_code_generator.get_internal_variable(
+                &String::from("break_lines"));
+
             byte_code_generator.environments_stack.pop_back();
         }
 
@@ -1485,6 +1496,27 @@ fn generate_for_loop_statement(
         }
     }
 
+    /* Insert Current Instruction Line For Break Lines */
+    {
+        if break_lines != None{
+            for line in break_lines.as_ref().unwrap(){
+
+                let stream_line = line.value.as_ref().unwrap()
+                    .string.as_ref().unwrap().parse::<u64>();
+
+                let current_instruction_line = byte_code_generator.append_empty_lines(
+                    format!("{}", byte_code_generator.current_instruction_line + 1));
+
+                byte_code_generator.file.rewrite_line(
+                    stream_line.as_ref().unwrap().clone(),
+                    format!(
+                        "{}:GoTo:{}",
+                        line.value.as_ref().unwrap().string_value.as_ref().unwrap(),
+                        current_instruction_line))
+            }
+        }
+    }
+
     return Ok(());
 }
 
@@ -1507,9 +1539,9 @@ fn generate_continue_statement(
             byte_code_generator.file.writeln(format!(
                 "{}:Operation:{:?}:\"{}\":\"{}\":\"{}\"",
                 current_line, TokenType::Plus,
-                start_variable.as_ref().unwrap().name.as_ref().unwrap(),
-                start_variable.as_ref().unwrap().name.as_ref().unwrap(),
-                step_variable.as_ref().unwrap().name.as_ref().unwrap()));
+                start_variable.as_ref().unwrap().back().as_ref().unwrap().name.as_ref().unwrap(),
+                start_variable.as_ref().unwrap().back().as_ref().unwrap().name.as_ref().unwrap(),
+                step_variable.as_ref().unwrap().back().as_ref().unwrap().name.as_ref().unwrap()));
 
         }
         else{
@@ -1528,8 +1560,8 @@ fn generate_continue_statement(
             byte_code_generator.file.writeln(format!(
                 "{}:Operation:{:?}:\"{}\":\"{}\":\"{}\"",
                 current_line, TokenType::Plus,
-                start_variable.as_ref().unwrap().name.as_ref().unwrap(),
-                start_variable.as_ref().unwrap().name.as_ref().unwrap(),
+                start_variable.as_ref().unwrap().back().as_ref().unwrap().name.as_ref().unwrap(),
+                start_variable.as_ref().unwrap().back().as_ref().unwrap().name.as_ref().unwrap(),
                 temp_step_variable));
         }
 
@@ -1542,10 +1574,45 @@ fn generate_continue_statement(
             byte_code_generator.file.writeln(format!(
                 "{current_line}:GoTo:{}",
                 start_loop_instruction_line.as_ref().unwrap()
+                    .back().as_ref().unwrap()
                     .value.as_ref().unwrap().string.as_ref().unwrap()));
 
         }
     }
+
+    return Ok(());
+}
+
+
+fn generate_break_statement(
+    byte_code_generator: &mut ByteCodeGenerator,
+) -> Result<(), String>{
+
+    /* Go To The End Of The Current Loop */
+
+    let current_line = byte_code_generator.get_current_line();
+    let space_line = byte_code_generator.append_empty_lines(String::from("0"));
+
+    let current_stream = byte_code_generator.file.get_stream_position();
+
+    byte_code_generator.file.writeln(format!(
+        "{current_line}:GoTo:{space_line}"));
+
+    byte_code_generator.insert_internal_variable_into_environment_stack(
+        String::from("break_lines"), Variable {
+            variable_type: Some(TokenType::String),
+            name: Some(String::from("break_lines")),
+            value: Some(Value {
+                value_type: Some(ValueType::String),
+                string_value: Some(format!("{current_line}")),
+                boolean: None,
+                int: None,
+                double: None,
+                character: None,
+                string: Some(format!("{current_stream}"))
+            }),
+            is_reasigned: false
+        });
 
     return Ok(());
 }

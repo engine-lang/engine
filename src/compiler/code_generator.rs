@@ -101,13 +101,15 @@ impl CodeGenerator{
     ){
         for environment in &mut self.environments_stack{
             if environment.internal_variables.contains_key(&variable_name){
-                environment.internal_variables.insert(variable_name, variable);
+                environment.internal_variables.entry(variable_name).and_modify(|e|{
+                    e.push_back(variable)
+                });
                 return ;
             }
         }
 
         self.environments_stack.back_mut().as_mut().unwrap().internal_variables.insert(
-            variable_name, variable);
+            variable_name, VecDeque::from([variable]));
     }
 
     fn is_variable_exists(&mut self, variable_name: &String) -> bool{
@@ -140,7 +142,7 @@ impl CodeGenerator{
 
     fn get_internal_variable(
         &mut self, variable_name: &String
-    ) -> Option<Variable>{
+    ) -> Option<VecDeque<Variable>>{
 
         for environment in &self.environments_stack{
             if environment.internal_variables.contains_key(variable_name){
@@ -900,12 +902,17 @@ fn generate_continue_statement(
 
         if step_variable == None{
             code_generator.file.writeln(format!(
-                "{} += 1;", start_variable.as_ref().unwrap().name.as_ref().unwrap()));
+                "{} += 1;",
+                start_variable.as_ref().unwrap()
+                    .back().as_ref().unwrap().name.as_ref().unwrap()));
         }
         else{
             code_generator.file.writeln(format!(
-                "{} += {};", start_variable.as_ref().unwrap().name.as_ref().unwrap(),
-                step_variable.as_ref().unwrap().name.as_ref().unwrap()));
+                "{} += {};",
+                start_variable.as_ref().unwrap()
+                    .back().as_ref().unwrap().name.as_ref().unwrap(),
+                step_variable.as_ref().unwrap()
+                    .back().as_ref().unwrap().name.as_ref().unwrap()));
         }
     }
 

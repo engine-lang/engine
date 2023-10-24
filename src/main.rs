@@ -44,6 +44,15 @@ fn parse_args() -> ArgMatches{
         .num_args(0)
         .required(false);
 
+    let analyze_arg = Arg::new("analyze-code")
+        .long("analyze-code")
+        .short('a')
+        .value_parser(clap::value_parser!(bool))
+        .default_value("false")
+        .default_missing_value("true")
+        .num_args(0)
+        .required(false);
+
     let virtual_machine_arg = Arg::new("virtual-machine")
         .long("vm")
         .value_parser(clap::value_parser!(bool))
@@ -57,6 +66,7 @@ fn parse_args() -> ArgMatches{
         file_path_arg,
         executable_arg,
         byte_code_arg,
+        analyze_arg,
         virtual_machine_arg
     ])
         .about("Engine Programming Language.")
@@ -78,8 +88,15 @@ fn main() {
         matches.get_one::<bool>("executable").unwrap().clone()
     {true} else {false};
 
+    let analyze_code = if
+        matches.contains_id("analyze-code") &&
+        matches.get_one::<bool>("analyze-code").unwrap().clone()
+    {true} else {false};
+
     let result = if executable || generate_byte_code{
-        compile(generate_byte_code)
+        compile(generate_byte_code, analyze_code)
+    } else if analyze_code{
+        compile(false, analyze_code)
     } else if
         matches.contains_id("virtual-machine") &&
         matches.get_one::<bool>("virtual-machine").unwrap().clone()

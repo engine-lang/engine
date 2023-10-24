@@ -28,7 +28,10 @@ use byte_code_generator::{
 };
 
 
-pub fn compile(generate_byte_code: bool) -> Result<(), String>{
+pub fn compile(
+    generate_byte_code: bool, analyze_code: bool
+) -> Result<(), String>{
+
     panic::set_hook(Box::new(|panic_info| {
         if let Some(panic_message) = panic_info.payload().downcast_ref::<String>() {
             println!("{}", panic_message);
@@ -73,6 +76,10 @@ pub fn compile(generate_byte_code: bool) -> Result<(), String>{
 
     let mut analyzer = Analyzer::new();
     analyze(&mut analyzer, syntax_tree.clone())?;
+
+    if analyze_code{
+        return Ok(());
+    }
 
     if generate_byte_code{
         let mut byte_code_generator = ByteCodeGenerator::new(

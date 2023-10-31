@@ -44,6 +44,7 @@ impl Analyzer{
             variables: HashMap::new(),
             internal_variables: HashMap::new(),
             stop_statements_execution: None,
+            functions: HashMap::new(),
         });
 
         return Analyzer{

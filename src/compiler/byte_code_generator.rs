@@ -31,7 +31,8 @@ use crate::syntax_tree::{
     DefineVarNode,
     DefineVariableNode,
     DefineIfStatementNode,
-    DefineForLoopStatementNode
+    DefineForLoopStatementNode,
+    DefineFunctionStatementNode,
 };
 
 
@@ -65,6 +66,7 @@ impl ByteCodeGenerator{
             variables: HashMap::new(),
             internal_variables: HashMap::new(),
             stop_statements_execution: None,
+            functions: HashMap::new(),
         });
 
         return Ok(ByteCodeGenerator{
@@ -288,6 +290,12 @@ fn generate_statement_node(
     }
     else if statement.statement_type == Some(StatementType::Break){
         generate_break_statement(&mut byte_code_generator)?;
+    }
+
+    else if statement.statement_type == Some(StatementType::DefineFunction){
+        generate_define_function_statement(
+            &mut byte_code_generator,
+            &statement.define_function_statement.as_ref().unwrap())?;
     }
 
     return Ok(());
@@ -1064,6 +1072,7 @@ fn generate_if_statement(
             variables: HashMap::new(),
             internal_variables: HashMap::new(),
             stop_statements_execution: None,
+            functions: HashMap::new(),
         });
 
         /*
@@ -1122,6 +1131,7 @@ fn generate_if_statement(
                 variables: HashMap::new(),
                 internal_variables: HashMap::new(),
                 stop_statements_execution: None,
+                functions: HashMap::new(),
             });
 
             /*
@@ -1163,6 +1173,7 @@ fn generate_if_statement(
                 variables: HashMap::new(),
                 internal_variables: HashMap::new(),
                 stop_statements_execution: None,
+                functions: HashMap::new(),
             });
 
             let define_else_node = statement.define_else_node.as_mut().unwrap();
@@ -1369,6 +1380,7 @@ fn generate_for_loop_statement(
                     (String::from("break_lines"), VecDeque::new())
                 ]),
                 stop_statements_execution: None,
+                functions: HashMap::new(),
             });
 
             byte_code_generator.insert_internal_variable_into_environment_stack(
@@ -1579,6 +1591,33 @@ fn generate_continue_statement(
 
         }
     }
+
+    return Ok(());
+}
+
+
+fn generate_define_function_statement(
+    byte_code_generator: &mut ByteCodeGenerator,
+    statement: &DefineFunctionStatementNode
+) -> Result<(), String>{
+
+    // /* Write Go To Line */
+    // {
+    //     let current_line = byte_code_generator.get_current_line();
+    //     let space_line = byte_code_generator.append_empty_lines(String::from("0"));
+    //     byte_code_generator.file.writeln(format!(
+    //         "{current_line}:GoTo:{space_line}"));
+    // }
+
+    // byte_code_generator.environments_stack.push_back(Environment {
+    //     scope: EnvironmentScope::Function,
+    //     variables: HashMap::new(),
+    //     internal_variables: HashMap::new(),
+    //     stop_statements_execution: None,
+    //     functions: HashMap::new(),
+    // });
+
+    // byte_code_generator.environments_stack.pop_back();
 
     return Ok(());
 }

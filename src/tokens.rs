@@ -64,6 +64,10 @@ pub enum TokenType{
     Continue,
     Break,
 
+    Function,
+    Arrow,
+    Return,
+
     BadToken,
 }
 
@@ -133,6 +137,13 @@ pub fn get_token_type(variable: &String) -> TokenType{
     }
     else if variable == "break"{
         return TokenType::Break;
+    }
+
+    else if variable == "fun"{
+        return TokenType::Function;
+    }
+    else if variable == "return"{
+        return TokenType::Return;
     }
 
     return TokenType::Variable;

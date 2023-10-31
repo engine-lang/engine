@@ -64,6 +64,7 @@ impl CodeGenerator{
             variables: HashMap::new(),
             internal_variables: HashMap::new(),
             stop_statements_execution: None,
+            functions: HashMap::new(),
         });
 
         return Ok(CodeGenerator{
@@ -182,6 +183,7 @@ pub fn generate(
     code_generator.file.writeln(String::from("#![allow(arithmetic_overflow)]"));
     code_generator.file.writeln(String::from("use std::io;"));
     code_generator.file.writeln(String::from("use std::panic;"));
+
     code_generator.file.writeln(String::from("fn main(){"));
     code_generator.file.writeln(String::from("use std::io::Write;"));
     code_generator.file.writeln(String::from("panic::set_hook(Box::new(|panic_info| {"));
@@ -203,6 +205,7 @@ pub fn generate(
 
     return Ok(());
 }
+
 
 fn generate_statements_node(
     code_generator: &mut CodeGenerator,
@@ -667,6 +670,7 @@ fn generate_define_if_statement(
             variables: HashMap::new(),
             internal_variables: HashMap::new(),
             stop_statements_execution: None,
+            functions: HashMap::new(),
         });
 
         let define_if_node = statement.define_if_node.as_mut().unwrap();
@@ -690,6 +694,7 @@ fn generate_define_if_statement(
                 variables: HashMap::new(),
                 internal_variables: HashMap::new(),
                 stop_statements_execution: None,
+                functions: HashMap::new(),
             });
 
             let result = &else_if_condition_results[index];
@@ -715,6 +720,7 @@ fn generate_define_if_statement(
                 variables: HashMap::new(),
                 internal_variables: HashMap::new(),
                 stop_statements_execution: None,
+                functions: HashMap::new(),
             });
 
             let define_else_node = statement.define_else_node.as_mut().unwrap();
@@ -842,6 +848,7 @@ fn generate_define_for_loop_statement(
                 variables: HashMap::new(),
                 internal_variables: HashMap::new(),
                 stop_statements_execution: None,
+                functions: HashMap::new(),
             });
 
             if statement.variable != None{

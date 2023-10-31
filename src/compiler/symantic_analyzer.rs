@@ -11,7 +11,8 @@ use crate::constants::{
 use crate::environments::{
     Environment,
     EnvironmentScope,
-    Variable
+    Variable,
+    Function
 };
 use crate::syntax_tree::{
     StatementsNode,
@@ -30,6 +31,8 @@ use crate::syntax_tree::{
     DefineForLoopStatementNode,
     DefineContinueStatementNode,
     DefineBreakStatementNode,
+    DefineFunctionStatementNode,
+    DefineReturnStatementNode,
 };
 
 
@@ -46,6 +49,7 @@ impl Analyzer{
             variables: HashMap::new(),
             internal_variables: HashMap::new(),
             stop_statements_execution: None,
+            functions: HashMap::new(),
         });
 
         return Analyzer{
@@ -167,6 +171,15 @@ pub fn analyze(
         else if statement.statement_type == Some(StatementType::Break){
             analyze_break_statement(
                 &mut analyzer, statement.define_break_statement.as_ref().unwrap())?;
+        }
+
+        else if statement.statement_type == Some(StatementType::DefineFunction){
+            analyze_define_function_statement(
+                &mut analyzer, statement.define_function_statement.as_ref().unwrap())?;
+        }
+        else if statement.statement_type == Some(StatementType::Return){
+            analyze_define_return_statement(
+                &mut analyzer, statement.define_return_statement.as_ref().unwrap())?;
         }
     }
 
@@ -535,6 +548,7 @@ fn analyze_define_if_statement(
             variables: HashMap::new(),
             internal_variables: HashMap::new(),
             stop_statements_execution: None,
+            functions: HashMap::new(),
         });
 
         let define_if_node = statement.define_if_node.as_ref().unwrap();
@@ -565,6 +579,7 @@ fn analyze_define_if_statement(
                 variables: HashMap::new(),
                 internal_variables: HashMap::new(),
                 stop_statements_execution: None,
+                functions: HashMap::new(),
             });
 
             let node_type = analyze_operation_node(
@@ -594,6 +609,7 @@ fn analyze_define_if_statement(
                 variables: HashMap::new(),
                 internal_variables: HashMap::new(),
                 stop_statements_execution: None,
+                functions: HashMap::new(),
             });
 
             let define_else_node = statement.define_else_node.as_ref().unwrap();
@@ -678,6 +694,7 @@ fn analyze_define_for_loop_statement(
         variables: HashMap::new(),
         internal_variables: HashMap::new(),
         stop_statements_execution: None,
+        functions: HashMap::new(),
     });
 
     /* Add Environments */
@@ -740,6 +757,242 @@ fn analyze_break_statement(
         "Use of `break` statement outside of Loop statement is invalid",
         break_token.start_line,
         break_token.start_pos));
+}
+
+
+fn analyze_define_function_statement(
+    analyzer: &mut Analyzer,
+    statement: &DefineFunctionStatementNode,
+) -> Result<(), String>{
+
+    let mut analyzer = analyzer;
+
+    /* Check Function is Not defined in current scope */
+    {
+        if analyzer.environments_stack.back().as_ref().unwrap().functions.contains_key(
+            &statement.name.as_ref().unwrap().value)
+        {
+            return Err(format!(
+                "Engine Compiler: Analyze Error -> {}, line {}:{}.",
+                format!(
+                    "Function `{}` is already defined",
+                    &statement.name.as_ref().unwrap().value),
+                &statement.name.as_ref().unwrap().start_line,
+                &statement.name.as_ref().unwrap().start_pos));
+        }
+    }
+
+    analyzer.environments_stack.back_mut().as_mut().unwrap().functions.insert(
+        statement.name.as_ref().unwrap().value.clone(), Function{
+            name: Some(statement.name.as_ref().unwrap().value.clone()),
+            params: HashMap::new(),
+            return_type: statement.return_type.clone()
+        });
+
+    analyzer.environments_stack.push_back(Environment {
+        scope: EnvironmentScope::Function,
+        variables: HashMap::new(),
+        internal_variables: HashMap::from([
+            (String::from("function-name"), VecDeque::from([
+                Variable{
+                    name: Some(statement.name.as_ref().unwrap().value.clone()),
+                    is_reasigned: false,
+                    variable_type: Some(TokenType::String),
+                    value: None
+                }
+            ]))
+        ]),
+        stop_statements_execution: None,
+        functions: HashMap::new(),
+    });
+
+    /* Define Params */
+    {
+        for (name, param) in &statement.params{
+            let mut variable = Variable::new();
+
+            variable.name = Some(name.clone());
+            variable.variable_type = param.parameter_type.clone();
+            variable.value = None;
+
+            insert_variable_into_current_environmment(&mut analyzer, variable);
+        }
+    }
+
+    /* Analyze Statements */
+    {
+        analyzer.environments_stack.push_back(Environment {
+            scope: EnvironmentScope::FunctionStatements,
+            variables: HashMap::new(),
+            internal_variables: HashMap::new(),
+            stop_statements_execution: None,
+            functions: HashMap::new(),
+        });
+
+        analyze(&mut analyzer, statement.statements.clone())?;
+
+        analyzer.environments_stack.pop_back();
+    }
+
+    analyzer.environments_stack.pop_back();
+
+    return Ok(());
+}
+
+
+fn analyze_define_return_statement(
+    analyzer: &mut Analyzer,
+    statement: &DefineReturnStatementNode
+) -> Result<(), String>{
+
+    let mut stack_before: Option<&Environment> = None;
+
+    let rev_environments: VecDeque<&Environment> = analyzer.environments_stack.iter().rev().collect();
+
+    // Main
+    // Function
+    // FunctionStatements
+
+    let current_env = analyzer.environments_stack.back();
+
+    for environment in rev_environments{
+        if environment.scope == EnvironmentScope::Function{
+
+        }
+
+        stack_before = Some(environment);
+    }
+
+    // for environment in &analyzer.environments_stack{
+    //     println!("{:?}", environment.scope);
+    //     let current_env = analyzer.environments_stack.back();
+    //     if current_env == Some(environment){
+    //         println!("SAME");
+    //     }
+    // }
+
+    // let en: VecDeque<&Environment> = analyzer.environments_stack.iter().rev().collect();
+
+    // for environment in &en{
+    //     println!("{:?}", environment.scope);
+    //     let current_env = analyzer.environments_stack.back();
+    //     if current_env == Some(environment){
+    //         println!("SAME");
+    //     }
+    // }
+
+    // let current_env = analyzer.environments_stack.back();
+
+    // for environment in &analyzer.environments_stack{
+    //     if environment.scope == EnvironmentScope::Function{
+    //         stack_before = Some(environment);
+    //     }
+
+    //     else if Some(environment) == current_env{
+    //         let retun_token = statement.meta.get("return-token")
+    //             .as_ref().unwrap().as_ref().unwrap();
+
+    //         let function_name = stack_before.as_ref().unwrap().internal_variables.get(
+    //             &String::from("function-name")).as_ref().unwrap()
+    //             .back().as_ref().unwrap().name.as_ref().unwrap();
+
+    //         println!("{function_name}");
+    //         println!("{:?}", stack_before);
+
+    //         let function_return_type = stack_before.as_ref().unwrap().functions.get(
+    //             function_name).as_ref().unwrap().return_type.clone();
+
+    //             // function_return_type.as_ref().unwrap().token_type
+
+    //         if function_return_type == None && statement.expression != None{
+    //             return Err(format!(
+    //                 "Engine Compiler: Syntax Error -> {}, line {}:{}.",
+    //                 "Return statement should not return any expression",
+    //                 retun_token.start_line,
+    //                 retun_token.start_pos));
+    //         }
+    //         else if function_return_type != None && statement.expression == None{
+    //             return Err(format!(
+    //                 "Engine Compiler: Syntax Error -> {}, line {}:{}.",
+    //                 format!(
+    //                     "Excpected return statement to return `{:?}`",
+    //                     function_return_type.as_ref().unwrap().token_type),
+    //                 retun_token.start_line,
+    //                 retun_token.start_pos));
+    //         }
+
+    //         if function_return_type == None{
+    //             return Ok(());
+    //         }
+    //         let function_return_type = &(function_return_type.as_ref().unwrap()).token_type;
+
+    //         let node_type = analyze_operation_node(
+    //             &analyzer, statement.expression.as_ref().unwrap())?;
+
+    //         if function_return_type == &TokenType::Bool{
+    //             if node_type != TokenType::Bool &&
+    //                 node_type != TokenType::True &&
+    //                 node_type != TokenType::False
+    //             {
+    //                 return Err(format!(
+    //                     "Engine Compiler: Syntax Error -> {}, line {}:{}.",
+    //                     format!(
+    //                         "Excpected return type `{:?}` found `{:?}`",
+    //                         function_return_type, node_type),
+    //                     retun_token.start_line,
+    //                     retun_token.start_pos));
+    //             }
+    //         }
+    //         else if function_return_type == &TokenType::Int{
+    //             if node_type != TokenType::IntNumber && node_type != TokenType::DoubleNumber{
+    //                 return Err(format!(
+    //                     "Engine Compiler: Syntax Error -> {}, line {}:{}.",
+    //                     format!(
+    //                         "Excpected return type `{:?}` found `{:?}`",
+    //                         function_return_type, node_type),
+    //                     retun_token.start_line,
+    //                     retun_token.start_pos));
+    //             }
+    //         }
+    //         else if function_return_type == &TokenType::Double{
+    //             if node_type != TokenType::IntNumber && node_type != TokenType::DoubleNumber{
+    //                 return Err(format!(
+    //                     "Engine Compiler: Syntax Error -> {}, line {}:{}.",
+    //                     format!(
+    //                         "Excpected return type `{:?}` found `{:?}`",
+    //                         function_return_type, node_type),
+    //                     retun_token.start_line,
+    //                     retun_token.start_pos));
+    //             }
+    //         }
+    //         else if function_return_type == &TokenType::Char{
+    //             if node_type != TokenType::Character && node_type != TokenType::StringSequence{
+    //                 return Err(format!(
+    //                     "Engine Compiler: Syntax Error -> {}, line {}:{}.",
+    //                     format!(
+    //                         "Excpected return type `{:?}` found `{:?}`",
+    //                         function_return_type, node_type),
+    //                     retun_token.start_line,
+    //                     retun_token.start_pos));
+    //             }
+    //         }
+    //         else if function_return_type == &TokenType::String{
+    //             if node_type != TokenType::StringSequence && node_type != TokenType::Character{
+    //                 return Err(format!(
+    //                     "Engine Compiler: Syntax Error -> {}, line {}:{}.",
+    //                     format!(
+    //                         "Excpected return type `{:?}` found `{:?}`",
+    //                         function_return_type, node_type),
+    //                     retun_token.start_line,
+    //                     retun_token.start_pos));
+    //             }
+    //         }
+
+    //         return Ok(());
+    //     }
+    // }
+
+    return Ok(());
 }
 
 

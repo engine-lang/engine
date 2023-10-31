@@ -37,6 +37,7 @@ pub fn execute_byte_code() -> Result<(), String>{
         variables: HashMap::new(),
         internal_variables: HashMap::new(),
         stop_statements_execution: None,
+        functions: HashMap::new(),
     };
 
     let mut file = File::open_byte_file(&args[1]);

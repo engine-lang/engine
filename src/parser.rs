@@ -31,6 +31,9 @@ use crate::syntax_tree::{
     DefineForLoopStatementNode,
     DefineContinueStatementNode,
     DefineBreakStatementNode,
+    FunctionParameter,
+    DefineFunctionStatementNode,
+    DefineReturnStatementNode,
 };
 
 
@@ -166,6 +169,23 @@ pub fn statement(
 
         let result = define_break_statement(&mut parser)?;
         node.define_break_statement = Some(result.1);
+
+        return Ok((result.0, node));
+    }
+
+    else if parser.current_token.token_type == TokenType::Function{
+        node.statement_type = Some(StatementType::DefineFunction);
+
+        let result = define_function_statement(&mut parser)?;
+        node.define_function_statement = Some(result.1);
+
+        return Ok((result.0, node));
+    }
+    else if parser.current_token.token_type == TokenType::Return{
+        node.statement_type = Some(StatementType::Return);
+
+        let result = define_return_statement(&mut parser)?;
+        node.define_return_statement = Some(result.1);
 
         return Ok((result.0, node));
     }
@@ -1203,6 +1223,224 @@ fn define_break_statement(
     _match(&mut parser, vec![
         TokenType::NewLine
     ])?;
+    _move(&mut parser)?;
+
+    return Ok((false, node));
+}
+
+
+fn define_function_statement(
+    parser: &mut Parser,
+) -> Result<(bool, DefineFunctionStatementNode), String>{
+
+    let mut parser = parser;
+    let mut node = DefineFunctionStatementNode::new();
+
+    _move(&mut parser)?;
+
+    /* Match Function Name */
+    bypass(&mut parser, vec![
+        TokenType::Space,
+        TokenType::MultiLineComment
+    ])?;
+    _match(&mut parser, vec![
+        TokenType::Variable
+    ])?;
+    node.name = Some(parser.current_token.clone());
+    _move(&mut parser)?;
+
+    /* Match Open Paranthese */
+    bypass(&mut parser, vec![
+        TokenType::Space,
+        TokenType::MultiLineComment
+    ])?;
+    _match(&mut parser, vec![
+        TokenType::OpenParenthes
+    ])?;
+    _move(&mut parser)?;
+
+    /* Match Function Arguments */
+    {
+        loop{
+            bypass(&mut parser, vec![
+                TokenType::Space,
+                TokenType::SingleLineComment,
+                TokenType::MultiLineComment,
+                TokenType::NewLine
+            ])?;
+            if !_is_matched_with(&mut parser, vec![TokenType::CloseParenthes]){
+
+                /* Match Argument */
+                {
+                    let mut param = FunctionParameter::new();
+
+                    /* Match Arg Type */
+                    bypass(&mut parser, vec![
+                        TokenType::Space,
+                        TokenType::SingleLineComment,
+                        TokenType::MultiLineComment,
+                        TokenType::NewLine
+                    ])?;
+                    _match(&mut parser, vec![
+                        TokenType::Bool,
+                        TokenType::Int,
+                        TokenType::Double,
+                        TokenType::Char,
+                        TokenType::String,
+                    ])?;
+                    param.parameter_type = Some(parser.current_token.token_type.clone());
+                    _move(&mut parser)?;
+
+                    /* Match Arg Name */
+                    bypass(&mut parser, vec![
+                        TokenType::Space,
+                        TokenType::MultiLineComment,
+                    ])?;
+                    _match(&mut parser, vec![
+                        TokenType::Variable,
+                    ])?;
+                    param.name = Some(parser.current_token.clone());
+                    _move(&mut parser)?;
+
+                    if node.params.contains_key(&param.name.as_ref().unwrap().value){
+                        return Err(format!(
+                            "Engine Compiler: Syntax Error -> {}, line {}:{}.",
+                            format!(
+                                "Parameter `{}` is already defined.",
+                                &param.name.as_ref().unwrap().value),
+                            param.name.as_ref().unwrap().start_line,
+                            param.name.as_ref().unwrap().start_pos));
+                    }
+                    node.params.insert(
+                        param.name.as_ref().unwrap().value.clone(), param);
+                }
+
+                /* Match Comma */
+                bypass(&mut parser, vec![
+                    TokenType::Space,
+                    TokenType::SingleLineComment,
+                    TokenType::MultiLineComment,
+                    TokenType::NewLine
+                ])?;
+                if _is_matched_with(&mut parser, vec![TokenType::Comma]){
+                    _move(&mut parser)?;
+
+                    continue;
+                }
+            }
+            break;
+        }
+    }
+
+    /* Match Close Paranthese */
+    bypass(&mut parser, vec![
+        TokenType::Space,
+        TokenType::SingleLineComment,
+        TokenType::MultiLineComment,
+        TokenType::NewLine
+    ])?;
+    _match(&mut parser, vec![
+        TokenType::CloseParenthes,
+    ])?;
+    _move(&mut parser)?;
+
+    /* Match Function Return Type */
+    {
+        /* Match Arrow */
+        bypass(&mut parser, vec![
+            TokenType::Space,
+            TokenType::MultiLineComment,
+        ])?;
+        if _is_matched_with(&mut parser, vec![
+            TokenType::Arrow
+        ]){
+            _move(&mut parser)?;
+
+            /* Match Type */
+            bypass(&mut parser, vec![
+                TokenType::Space,
+                TokenType::MultiLineComment,
+            ])?;
+            _match(&mut parser, vec![
+                TokenType::Bool,
+                TokenType::Int,
+                TokenType::Double,
+                TokenType::Char,
+                TokenType::String,
+            ])?;
+            node.return_type = Some(parser.current_token.clone());
+            _move(&mut parser)?;
+        }
+    }
+
+    /* Match Open Bracket */
+    bypass(&mut parser, vec![
+        TokenType::Space,
+        TokenType::SingleLineComment,
+        TokenType::MultiLineComment,
+        TokenType::NewLine
+    ])?;
+    _match(&mut parser, vec![
+        TokenType::OpenBracket,
+    ])?;
+    _move(&mut parser)?;
+
+    /* Define Function Statements */
+    node.statements = statements(&mut parser, false)?;
+
+    /* Match Close Bracket */
+    bypass(&mut parser, vec![
+        TokenType::Space,
+        TokenType::SingleLineComment,
+        TokenType::MultiLineComment,
+        TokenType::NewLine
+    ])?;
+    _match(&mut parser, vec![
+        TokenType::CloseBracket,
+    ])?;
+    _move(&mut parser)?;
+
+    /* Match New Line */
+    bypass(&mut parser, vec![
+        TokenType::Space,
+        TokenType::SingleLineComment,
+        TokenType::MultiLineComment,
+    ])?;
+    _match(&mut parser, vec![
+        TokenType::NewLine
+    ])?;
+    _move(&mut parser)?;
+
+    return Ok((false, node));
+}
+
+
+fn define_return_statement(
+    parser: &mut Parser,
+) -> Result<(bool, DefineReturnStatementNode), String>{
+
+    let mut parser = parser;
+    let mut node = DefineReturnStatementNode::new();
+    let mut tokens_array: VecDeque<Token> = VecDeque::new();
+
+    node.meta.insert(
+        String::from("return-token"), Some(parser.current_token.clone()));
+
+    _move(&mut parser)?;
+
+    /* Call Expression */
+    bypass(&mut parser, vec![
+        TokenType::Space,
+        TokenType::MultiLineComment,
+    ])?;
+    if !_is_matched_with(&mut parser, vec![
+        TokenType::NewLine,
+    ]){
+        match_expression(&mut parser, false, &mut tokens_array)?;
+        node.expression = Some(construct_expression_node(&mut tokens_array));
+    }
+
+    _match(&mut parser, vec![TokenType::NewLine])?;
     _move(&mut parser)?;
 
     return Ok((false, node));

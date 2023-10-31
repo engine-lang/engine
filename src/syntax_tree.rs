@@ -28,6 +28,9 @@ pub enum StatementType{
     DefineForLoop,
     Continue,
     Break,
+
+    DefineFunction,
+    Return,
 }
 
 
@@ -306,7 +309,7 @@ impl DefineForLoopStatementNode{
 pub struct DefineContinueStatementNode{
     pub meta: HashMap<String, Option<Token>>,
 }
-impl DefineContinueStatementNode {
+impl DefineContinueStatementNode{
     pub fn new() -> Self{
         return DefineContinueStatementNode{
             meta: HashMap::from([
@@ -321,13 +324,65 @@ impl DefineContinueStatementNode {
 pub struct DefineBreakStatementNode{
     pub meta: HashMap<String, Option<Token>>,
 }
-impl DefineBreakStatementNode {
+impl DefineBreakStatementNode{
     pub fn new() -> Self{
         return DefineBreakStatementNode{
             meta: HashMap::from([
                 (String::from("break-token"), None)
             ])
         };
+    }
+}
+
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct FunctionParameter{
+    pub name: Option<Token>,
+    pub parameter_type: Option<TokenType>
+}
+impl FunctionParameter{
+    pub fn new() -> Self{
+        return FunctionParameter{
+            name: None,
+            parameter_type: None
+        };
+    }
+}
+
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct DefineFunctionStatementNode{
+    pub name: Option<Token>,
+    pub params: HashMap<String, FunctionParameter>,
+    pub return_type: Option<Token>,
+    pub statements: StatementsNode
+}
+impl DefineFunctionStatementNode{
+    pub fn new() -> Self{
+        return DefineFunctionStatementNode{
+            name: None,
+            params: HashMap::new(),
+            return_type: None,
+            statements: StatementsNode::new()
+        };
+    }
+}
+
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct DefineReturnStatementNode{
+    pub expression: Option<OperationNode>,
+
+    pub meta: HashMap<String, Option<Token>>,
+}
+impl DefineReturnStatementNode{
+    pub fn new() -> Self{
+        return DefineReturnStatementNode{
+            expression: None,
+            meta: HashMap::from([
+                (String::from("return-token"), None)
+            ])
+        }
     }
 }
 
@@ -351,6 +406,9 @@ pub struct StatementNode{
     pub define_for_loop_statement: Option<DefineForLoopStatementNode>,
     pub define_continue_statement: Option<DefineContinueStatementNode>,
     pub define_break_statement: Option<DefineBreakStatementNode>,
+
+    pub define_function_statement: Option<DefineFunctionStatementNode>,
+    pub define_return_statement: Option<DefineReturnStatementNode>,
 }
 
 impl StatementNode{
@@ -373,6 +431,9 @@ impl StatementNode{
             define_for_loop_statement: None,
             define_continue_statement: None,
             define_break_statement: None,
+
+            define_function_statement: None,
+            define_return_statement: None,
         };
     }
 }
@@ -712,7 +773,17 @@ fn __nine_precedence_expression(tokens: &mut VecDeque<Token>) -> OperationNode{
 }
 
 
-/** [ True False Number Character StringSequence Null Variable () ! ] */
+/*
+    [
+        True False
+        IntNumber DoubleNumber
+        Character StringSequence
+        Variable
+        Variable ( expression [, ...expression] )
+        ()
+        Input
+    ]
+*/
 fn __last_expression(tokens: &mut VecDeque<Token>) -> OperationNode{
     let mut node = OperationNode::new();
 

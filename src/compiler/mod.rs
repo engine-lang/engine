@@ -32,15 +32,15 @@ pub fn compile(
     generate_byte_code: bool, analyze_code: bool
 ) -> Result<(), String>{
 
-    panic::set_hook(Box::new(|panic_info| {
-        if let Some(panic_message) = panic_info.payload().downcast_ref::<String>() {
-            println!("{}", panic_message);
-        } else if let Some(panic_message) = panic_info.payload().downcast_ref::<&str>() {
-            println!("{}", panic_message);
-        } else {
-            println!("Engine Compiler -> Interperter Error {}", panic_info);
-        }
-    }));
+    // panic::set_hook(Box::new(|panic_info| {
+    //     if let Some(panic_message) = panic_info.payload().downcast_ref::<String>() {
+    //         println!("{}", panic_message);
+    //     } else if let Some(panic_message) = panic_info.payload().downcast_ref::<&str>() {
+    //         println!("{}", panic_message);
+    //     } else {
+    //         println!("Engine Compiler -> Interperter Error {}", panic_info);
+    //     }
+    // }));
 
     let args: Vec<String> = env::args().collect();
     if args.len() < 2{

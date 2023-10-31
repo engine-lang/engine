@@ -382,6 +382,14 @@ pub fn next_token(lexer: &mut Lexer) -> Result<Token, String>{
                 value: next(&mut lexer) + &next(&mut lexer)
             })
         }
+        else if peek(&mut lexer, 1).to_string() == ">"{
+            return Ok(Token{
+                token_type: TokenType::Arrow,
+                start_line: lexer.current_line,
+                start_pos: lexer.current_pos,
+                value: next(&mut lexer) + &next(&mut lexer)
+            })
+        }
         else if peek(&mut lexer, 1).is_digit(){
             let current_line = lexer.current_line.clone();
             let current_pos = lexer.current_pos.clone();

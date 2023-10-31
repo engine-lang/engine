@@ -3,7 +3,10 @@ use std::collections::{
     VecDeque,
 };
 
-use crate::tokens::TokenType;
+use crate::tokens::{
+    TokenType,
+    Token
+};
 
 
 #[derive(Debug, Clone, PartialEq)]
@@ -11,6 +14,8 @@ pub enum EnvironmentScope{
     Main,
     If,
     ForLoop,
+    Function,
+    FunctionStatements,
 }
 
 
@@ -37,6 +42,22 @@ pub struct Environment{
     pub variables: HashMap<String, Option<Variable>>,
     pub internal_variables: HashMap<String, VecDeque<Variable>>,
     pub stop_statements_execution: Option<StopExecutionType>,
+    pub functions: HashMap<String, Function>,
+}
+
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct FunctionParam{
+    pub param_type: Option<TokenType>,
+    pub name: Option<String>
+}
+
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct Function{
+    pub name: Option<String>,
+    pub params: HashMap<String, FunctionParam>,
+    pub return_type: Option<Token>,
 }
 
 

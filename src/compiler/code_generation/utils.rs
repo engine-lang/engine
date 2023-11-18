@@ -12,35 +12,34 @@ use crate::environments::{
 };
 use crate::syntax_tree::{
     StatementsNode,
-    StatementNode,
-    StatementType,
-    DefineBoolNode,
     OperationNode,
+    OperatorType,
+    StatementType,
+    StatementNode,
+    DefineBoolNode,
     DefineIntNode,
     DefineDoubleNode,
     DefineCharNode,
     DefineStringNode,
-    OperatorType,
-    DefinePrintNode,
     DefineVarNode,
     DefineVariableNode,
+    DefinePrintNode,
     DefineIfStatementNode,
-    DefineForLoopStatementNode
+    DefineForLoopStatementNode,
 };
 use crate::tokens::TokenType;
 use crate::constants::Mode;
-
 use crate::file::File;
 
 
 #[derive(Debug)]
 pub struct CodeGenerator{
-    file: File,
-    parent_folder: String,
-    new_file_path: String,
-    syntax_tree: StatementsNode,
-    currrent_counter: u128,
-    environments_stack: VecDeque<Environment>,
+    pub file: File,
+    pub parent_folder: String,
+    pub new_file_path: String,
+    pub syntax_tree: StatementsNode,
+    pub currrent_counter: u128,
+    pub environments_stack: VecDeque<Environment>,
 }
 
 impl CodeGenerator{
@@ -58,31 +57,22 @@ impl CodeGenerator{
         let mut _file = File::create_new(
             new_file_path.clone(), Mode::Compiler)?;
 
-        let mut environments_stack = VecDeque::new();
-        environments_stack.push_back(Environment {
-            scope: EnvironmentScope::Main,
-            variables: HashMap::new(),
-            internal_variables: HashMap::new(),
-            stop_statements_execution: None,
-            functions: HashMap::new(),
-        });
-
         return Ok(CodeGenerator{
             file: _file,
             parent_folder: parent_folder_path.clone(),
             new_file_path,
             syntax_tree,
             currrent_counter: 0,
-            environments_stack
+            environments_stack: VecDeque::new(),
         });
     }
 
-    fn generate_variable_name(&mut self) -> String{
+    pub fn generate_variable_name(&mut self) -> String{
         self.currrent_counter += 1;
         return format!("_{}", self.currrent_counter);
     }
 
-    fn insert_variable_into_environments_stack(
+    pub fn insert_variable_into_environments_stack(
         &mut self, variable_name: String, variable: Variable,
     ){
 
@@ -97,7 +87,7 @@ impl CodeGenerator{
             variable_name, Some(variable));
     }
 
-    fn insert_internal_variable_into_environment_stack(
+    pub fn insert_internal_variable_into_environment_stack(
         &mut self, variable_name: String, variable: Variable
     ){
         for environment in &mut self.environments_stack{
@@ -113,7 +103,7 @@ impl CodeGenerator{
             variable_name, VecDeque::from([variable]));
     }
 
-    fn is_variable_exists(&mut self, variable_name: &String) -> bool{
+    pub fn is_variable_exists(&mut self, variable_name: &String) -> bool{
         for environment in &self.environments_stack{
             if environment.variables.contains_key(variable_name){
                 return true;
@@ -123,7 +113,7 @@ impl CodeGenerator{
         return false;
     }
 
-    fn get_variable_type(
+    pub fn get_variable_type(
         &self, variable_name: &String
     ) -> Result<TokenType, String>{
 
@@ -141,7 +131,7 @@ impl CodeGenerator{
             variable_name));
     }
 
-    fn get_internal_variable(
+    pub fn get_internal_variable(
         &mut self, variable_name: &String
     ) -> Option<VecDeque<Variable>>{
 
@@ -175,39 +165,7 @@ impl CodeGenerator{
 }
 
 
-pub fn generate(
-    code_generator: &mut CodeGenerator
-) -> Result<(), String>{
-    let mut code_generator = code_generator;
-
-    code_generator.file.writeln(String::from("#![allow(arithmetic_overflow)]"));
-    code_generator.file.writeln(String::from("use std::io;"));
-    code_generator.file.writeln(String::from("use std::panic;"));
-
-    code_generator.file.writeln(String::from("fn main(){"));
-    code_generator.file.writeln(String::from("use std::io::Write;"));
-    code_generator.file.writeln(String::from("panic::set_hook(Box::new(|panic_info| {"));
-    code_generator.file.writeln(String::from("if let Some(panic_message) = panic_info.payload().downcast_ref::<String>() {"));
-    code_generator.file.writeln(String::from("println!(\"{}\", panic_message);"));
-    code_generator.file.writeln(String::from("} else if let Some(panic_message) = panic_info.payload().downcast_ref::<&str>() {"));
-    code_generator.file.writeln(String::from("println!(\"{}\", panic_message);"));
-    code_generator.file.writeln(String::from("} else {"));
-    code_generator.file.writeln(String::from("println!(\"Engine Compiler -> Interperter Error {}\", panic_info);"));
-    code_generator.file.writeln(String::from("}"));
-    code_generator.file.writeln(String::from("}));"));
-
-    let mut tree = code_generator.syntax_tree.clone();
-
-    generate_statements_node(
-        &mut code_generator, &mut tree)?;
-
-    code_generator.file.writeln(String::from("}"));
-
-    return Ok(());
-}
-
-
-fn generate_statements_node(
+pub fn generate_statements_node(
     code_generator: &mut CodeGenerator,
     statements_node: &mut StatementsNode
 ) -> Result<(), String>{
@@ -220,7 +178,8 @@ fn generate_statements_node(
     return Ok(());
 }
 
-fn generate_statement_node(
+
+pub fn generate_statement_node(
     code_generator: &mut CodeGenerator,
     statement: &mut StatementNode
 ) -> Result<(), String>{
@@ -291,36 +250,8 @@ fn generate_statement_node(
     return Ok(());
 }
 
-fn generate_define_bool_variable(
-    code_generator: &mut CodeGenerator,
-    statement: &DefineBoolNode
-) -> Result<(), String>{
 
-    let mut code_generator = code_generator;
-
-    let result = define_operation_node_variables(
-        &mut code_generator,
-        statement.left.as_ref().unwrap())?;
-
-    code_generator.file.writeln(format!(
-        "let mut variable_{}: bool = {};",
-        statement.name.as_ref().unwrap().value,
-        result.0,
-    ));
-
-    code_generator.insert_variable_into_environments_stack(
-        statement.name.as_ref().unwrap().value.clone(),
-        Variable {
-            variable_type: Some(TokenType::Bool),
-            name: Some(statement.name.as_ref().unwrap().value.clone()),
-            value: None,
-            is_reasigned: false
-        });
-
-    return Ok(());
-}
-
-fn generate_define_int_variable(
+pub fn generate_define_int_variable(
     code_generator: &mut CodeGenerator,
     statement: &DefineIntNode
 ) -> Result<(), String>{
@@ -349,7 +280,38 @@ fn generate_define_int_variable(
     return Ok(());
 }
 
-fn generate_define_double_variable(
+
+pub fn generate_define_bool_variable(
+    code_generator: &mut CodeGenerator,
+    statement: &DefineBoolNode
+) -> Result<(), String>{
+
+    let mut code_generator = code_generator;
+
+    let result = define_operation_node_variables(
+        &mut code_generator,
+        statement.left.as_ref().unwrap())?;
+
+    code_generator.file.writeln(format!(
+        "let mut variable_{}: bool = {};",
+        statement.name.as_ref().unwrap().value,
+        result.0,
+    ));
+
+    code_generator.insert_variable_into_environments_stack(
+        statement.name.as_ref().unwrap().value.clone(),
+        Variable {
+            variable_type: Some(TokenType::Bool),
+            name: Some(statement.name.as_ref().unwrap().value.clone()),
+            value: None,
+            is_reasigned: false
+        });
+
+    return Ok(());
+}
+
+
+pub fn generate_define_double_variable(
     code_generator: &mut CodeGenerator,
     statement: &DefineDoubleNode
 ) -> Result<(), String>{
@@ -378,7 +340,8 @@ fn generate_define_double_variable(
     return Ok(());
 }
 
-fn generate_define_char_variable(
+
+pub fn generate_define_char_variable(
     code_generator: &mut CodeGenerator,
     statement: &DefineCharNode
 ) -> Result<(), String>{
@@ -416,7 +379,8 @@ fn generate_define_char_variable(
     return Ok(());
 }
 
-fn generate_define_string_variable(
+
+pub fn generate_define_string_variable(
     code_generator: &mut CodeGenerator,
     statement: &DefineStringNode
 ) -> Result<(), String>{
@@ -445,7 +409,8 @@ fn generate_define_string_variable(
     return Ok(());
 }
 
-fn generate_define_var_variable(
+
+pub fn generate_define_var_variable(
     code_generator: &mut CodeGenerator,
     statement: &DefineVarNode
 ) -> Result<(), String>{
@@ -490,7 +455,8 @@ fn generate_define_var_variable(
     return Ok(());
 }
 
-fn generate_define_variable(
+
+pub fn generate_define_variable(
     code_generator: &mut CodeGenerator,
     statement: &DefineVariableNode
 ) -> Result<(), String>{
@@ -608,7 +574,8 @@ fn generate_define_variable(
     return Ok(());
 }
 
-fn generate_define_print_variable(
+
+pub fn generate_define_print_variable(
     code_generator: &mut CodeGenerator,
     statement: &DefinePrintNode
 ) -> Result<(), String>{
@@ -631,7 +598,8 @@ fn generate_define_print_variable(
     return Ok(());
 }
 
-fn generate_define_if_statement(
+
+pub fn generate_define_if_statement(
     code_generator: &mut CodeGenerator,
     statement: &mut DefineIfStatementNode
 ) -> Result<(), String>{
@@ -739,7 +707,8 @@ fn generate_define_if_statement(
     return Ok(());
 }
 
-fn generate_define_for_loop_statement(
+
+pub fn generate_define_for_loop_statement(
     code_generator: &mut CodeGenerator,
     statement: &mut DefineForLoopStatementNode
 ) -> Result<(), String>{
@@ -895,7 +864,7 @@ fn generate_define_for_loop_statement(
 }
 
 
-fn generate_continue_statement(
+pub fn generate_continue_statement(
     code_generator: &mut CodeGenerator
 ) -> Result<(), String>{
 
@@ -929,7 +898,7 @@ fn generate_continue_statement(
 }
 
 
-fn generate_break_statement(
+pub fn generate_break_statement(
     code_generator: &mut CodeGenerator
 ) -> Result<(), String>{
 
@@ -939,7 +908,7 @@ fn generate_break_statement(
 }
 
 
-fn define_operation_node_variables(
+pub fn define_operation_node_variables(
     code_generator: &mut CodeGenerator,
     operation_node: &OperationNode
 ) -> Result<(String, TokenType), String>{

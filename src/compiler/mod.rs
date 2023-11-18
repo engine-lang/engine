@@ -1,5 +1,5 @@
 mod symantic_analyzer;
-mod code_generator;
+mod code_generation;
 mod byte_code_generator;
 
 
@@ -18,10 +18,8 @@ use symantic_analyzer::{
     Analyzer,
     analyze
 };
-use code_generator::{
-    CodeGenerator,
-    generate,
-};
+use crate::compiler::code_generation::CodeGenerator;
+use code_generation::generate;
 use byte_code_generator::{
     ByteCodeGenerator,
     generate_byte_code as start_generate_byte_code
@@ -102,8 +100,8 @@ pub fn compile(
         }
 
         generate(code_generator.as_mut().unwrap())?;
-        code_generator.as_mut().unwrap().execute()?;
-        code_generator.as_mut().unwrap().clean()?;
+        // code_generator.as_mut().unwrap().execute()?;
+        // code_generator.as_mut().unwrap().clean()?;
     }
 
     return Ok(());

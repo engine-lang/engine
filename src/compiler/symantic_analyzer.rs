@@ -793,11 +793,13 @@ fn analyze_define_function_statement(
         scope: EnvironmentScope::Function,
         variables: HashMap::new(),
         internal_variables: HashMap::from([
-            (String::from("function-name"), VecDeque::from([
+            (String::from("function-return-type"), VecDeque::from([
                 Variable{
-                    name: Some(statement.name.as_ref().unwrap().value.clone()),
+                    name: None,
                     is_reasigned: false,
-                    variable_type: Some(TokenType::String),
+                    variable_type: if statement.return_type != None{
+                        Some(statement.return_type.as_ref().unwrap().token_type.clone())
+                    } else {None},
                     value: None
                 }
             ]))
@@ -845,154 +847,109 @@ fn analyze_define_return_statement(
     statement: &DefineReturnStatementNode
 ) -> Result<(), String>{
 
-    let mut stack_before: Option<&Environment> = None;
-
     let rev_environments: VecDeque<&Environment> = analyzer.environments_stack.iter().rev().collect();
 
-    // Main
-    // Function
-    // FunctionStatements
+    let return_token = statement.meta.get("return-token")
+        .as_ref().unwrap().as_ref().unwrap();
 
-    let current_env = analyzer.environments_stack.back();
-
-    for environment in rev_environments{
+    for environment in &rev_environments{
         if environment.scope == EnvironmentScope::Function{
+            let function_return_type = environment.internal_variables
+                    .get("function-return-type").as_ref().unwrap().back()
+                    .as_ref().unwrap().variable_type.clone();
 
+            if function_return_type == None && statement.expression != None{
+                return Err(format!(
+                    "Engine Compiler: Syntax Error -> {}, line {}:{}.",
+                    "Return statement should not return any expression",
+                    return_token.start_line,
+                    return_token.start_pos));
+            }
+            else if function_return_type != None && statement.expression == None{
+                return Err(format!(
+                    "Engine Compiler: Syntax Error -> {}, line {}:{}.",
+                    format!(
+                        "Excpected return statement to return `{:?}`",
+                        function_return_type.as_ref().unwrap()),
+                    return_token.start_line,
+                    return_token.start_pos));
+            }
+
+            if function_return_type == None{
+                return Ok(());
+            }
+
+            let node_type = analyze_operation_node(
+                &analyzer, statement.expression.as_ref().unwrap())?;
+
+            if function_return_type == Some(TokenType::Bool){
+                if node_type != TokenType::Bool &&
+                    node_type != TokenType::True &&
+                    node_type != TokenType::False
+                {
+                    return Err(format!(
+                        "Engine Compiler: Syntax Error -> {}, line {}:{}.",
+                        format!(
+                            "Excpected return type `{:?}` found `{:?}`",
+                            function_return_type, node_type),
+                        return_token.start_line,
+                        return_token.start_pos));
+                }
+            }
+            else if function_return_type == Some(TokenType::Int){
+                if node_type != TokenType::IntNumber && node_type != TokenType::DoubleNumber{
+                    return Err(format!(
+                        "Engine Compiler: Syntax Error -> {}, line {}:{}.",
+                        format!(
+                            "Excpected return type `{:?}` found `{:?}`",
+                            function_return_type, node_type),
+                        return_token.start_line,
+                        return_token.start_pos));
+                }
+            }
+            else if function_return_type == Some(TokenType::Double){
+                if node_type != TokenType::IntNumber && node_type != TokenType::DoubleNumber{
+                    return Err(format!(
+                        "Engine Compiler: Syntax Error -> {}, line {}:{}.",
+                        format!(
+                            "Excpected return type `{:?}` found `{:?}`",
+                            function_return_type, node_type),
+                        return_token.start_line,
+                        return_token.start_pos));
+                }
+            }
+            else if function_return_type == Some(TokenType::Char){
+                if node_type != TokenType::Character && node_type != TokenType::StringSequence{
+                    return Err(format!(
+                        "Engine Compiler: Syntax Error -> {}, line {}:{}.",
+                        format!(
+                            "Excpected return type `{:?}` found `{:?}`",
+                            function_return_type, node_type),
+                        return_token.start_line,
+                        return_token.start_pos));
+                }
+            }
+            else if function_return_type == Some(TokenType::String){
+                if node_type != TokenType::StringSequence && node_type != TokenType::Character{
+                    return Err(format!(
+                        "Engine Compiler: Syntax Error -> {}, line {}:{}.",
+                        format!(
+                            "Excpected return type `{:?}` found `{:?}`",
+                            function_return_type, node_type),
+                        return_token.start_line,
+                        return_token.start_pos));
+                }
+            }
+
+            return Ok(());
         }
-
-        stack_before = Some(environment);
     }
 
-    // for environment in &analyzer.environments_stack{
-    //     println!("{:?}", environment.scope);
-    //     let current_env = analyzer.environments_stack.back();
-    //     if current_env == Some(environment){
-    //         println!("SAME");
-    //     }
-    // }
-
-    // let en: VecDeque<&Environment> = analyzer.environments_stack.iter().rev().collect();
-
-    // for environment in &en{
-    //     println!("{:?}", environment.scope);
-    //     let current_env = analyzer.environments_stack.back();
-    //     if current_env == Some(environment){
-    //         println!("SAME");
-    //     }
-    // }
-
-    // let current_env = analyzer.environments_stack.back();
-
-    // for environment in &analyzer.environments_stack{
-    //     if environment.scope == EnvironmentScope::Function{
-    //         stack_before = Some(environment);
-    //     }
-
-    //     else if Some(environment) == current_env{
-    //         let retun_token = statement.meta.get("return-token")
-    //             .as_ref().unwrap().as_ref().unwrap();
-
-    //         let function_name = stack_before.as_ref().unwrap().internal_variables.get(
-    //             &String::from("function-name")).as_ref().unwrap()
-    //             .back().as_ref().unwrap().name.as_ref().unwrap();
-
-    //         println!("{function_name}");
-    //         println!("{:?}", stack_before);
-
-    //         let function_return_type = stack_before.as_ref().unwrap().functions.get(
-    //             function_name).as_ref().unwrap().return_type.clone();
-
-    //             // function_return_type.as_ref().unwrap().token_type
-
-    //         if function_return_type == None && statement.expression != None{
-    //             return Err(format!(
-    //                 "Engine Compiler: Syntax Error -> {}, line {}:{}.",
-    //                 "Return statement should not return any expression",
-    //                 retun_token.start_line,
-    //                 retun_token.start_pos));
-    //         }
-    //         else if function_return_type != None && statement.expression == None{
-    //             return Err(format!(
-    //                 "Engine Compiler: Syntax Error -> {}, line {}:{}.",
-    //                 format!(
-    //                     "Excpected return statement to return `{:?}`",
-    //                     function_return_type.as_ref().unwrap().token_type),
-    //                 retun_token.start_line,
-    //                 retun_token.start_pos));
-    //         }
-
-    //         if function_return_type == None{
-    //             return Ok(());
-    //         }
-    //         let function_return_type = &(function_return_type.as_ref().unwrap()).token_type;
-
-    //         let node_type = analyze_operation_node(
-    //             &analyzer, statement.expression.as_ref().unwrap())?;
-
-    //         if function_return_type == &TokenType::Bool{
-    //             if node_type != TokenType::Bool &&
-    //                 node_type != TokenType::True &&
-    //                 node_type != TokenType::False
-    //             {
-    //                 return Err(format!(
-    //                     "Engine Compiler: Syntax Error -> {}, line {}:{}.",
-    //                     format!(
-    //                         "Excpected return type `{:?}` found `{:?}`",
-    //                         function_return_type, node_type),
-    //                     retun_token.start_line,
-    //                     retun_token.start_pos));
-    //             }
-    //         }
-    //         else if function_return_type == &TokenType::Int{
-    //             if node_type != TokenType::IntNumber && node_type != TokenType::DoubleNumber{
-    //                 return Err(format!(
-    //                     "Engine Compiler: Syntax Error -> {}, line {}:{}.",
-    //                     format!(
-    //                         "Excpected return type `{:?}` found `{:?}`",
-    //                         function_return_type, node_type),
-    //                     retun_token.start_line,
-    //                     retun_token.start_pos));
-    //             }
-    //         }
-    //         else if function_return_type == &TokenType::Double{
-    //             if node_type != TokenType::IntNumber && node_type != TokenType::DoubleNumber{
-    //                 return Err(format!(
-    //                     "Engine Compiler: Syntax Error -> {}, line {}:{}.",
-    //                     format!(
-    //                         "Excpected return type `{:?}` found `{:?}`",
-    //                         function_return_type, node_type),
-    //                     retun_token.start_line,
-    //                     retun_token.start_pos));
-    //             }
-    //         }
-    //         else if function_return_type == &TokenType::Char{
-    //             if node_type != TokenType::Character && node_type != TokenType::StringSequence{
-    //                 return Err(format!(
-    //                     "Engine Compiler: Syntax Error -> {}, line {}:{}.",
-    //                     format!(
-    //                         "Excpected return type `{:?}` found `{:?}`",
-    //                         function_return_type, node_type),
-    //                     retun_token.start_line,
-    //                     retun_token.start_pos));
-    //             }
-    //         }
-    //         else if function_return_type == &TokenType::String{
-    //             if node_type != TokenType::StringSequence && node_type != TokenType::Character{
-    //                 return Err(format!(
-    //                     "Engine Compiler: Syntax Error -> {}, line {}:{}.",
-    //                     format!(
-    //                         "Excpected return type `{:?}` found `{:?}`",
-    //                         function_return_type, node_type),
-    //                     retun_token.start_line,
-    //                     retun_token.start_pos));
-    //             }
-    //         }
-
-    //         return Ok(());
-    //     }
-    // }
-
-    return Ok(());
+    return Err(format!(
+        "Engine Compiler: Syntax Error -> {}, line {}:{}.",
+        "Return statement used outside of function",
+        return_token.start_line,
+        return_token.start_pos));
 }
 
 

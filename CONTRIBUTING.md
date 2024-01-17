@@ -8,12 +8,16 @@ You can contribute in the engine language project with many ways. And you can ev
 * You can report a bug.
 * You can improve the docs for the language.
 * You can add examples for the language.
+* You can suggest a new language syntax.
 
 
 ## Contributing with Rust beckground
 If you have rust background, then you can contribute by:
 * Suggest new feature.
 * Fix a bug.
+* You can help in writting tests
+* You can help improve the pipeline
+* You can suggest new language syntax
 
 
 ## Contributing with any programming language.

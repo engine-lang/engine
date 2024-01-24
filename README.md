@@ -7,7 +7,7 @@ Engine Programming Language - The Next Generation Of Programming Languages
 
 
 # Introduction
-Engine is a new programming language which it's compiler is based on Rust programming languuage. This has many benefits:
+Engine is a new programming language which it's compiler is based on Rust programming language. This has many benefits:
 
 * Rust is fast. with memory safty guaranties
 * No garbash collection model.
